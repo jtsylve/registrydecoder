@@ -9,23 +9,19 @@
 = What features does Registry Decoder have? =
 
    * Hive Browsing
-
    * Hive Searching
-
-* Plug-in System
-
-* Differencing of Registry Files
-
-* Automated Reporting
+   * Plug-in System
+   * Differencing of Registry Files
+   * Automated Reporting
 
 = Which evidence types are supported? =
 
-* Raw (dd) images
-* Raw partition images
-* Individual Registry Files
-* Databases created by the online acquisition component
+   * Raw (dd) images
+   * Raw partition images
+   * Individual Registry Files
+   * Databases created by the online acquisition component
 
 = Which report formats are supported? =
 
-* HTML
-* PDF
+   * HTML
+   * PDF
