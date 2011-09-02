@@ -8,10 +8,14 @@
 
 = What features does Registry Decoder have? =
 
-* Hive Browsing
-* Hive Searching
+   * Hive Browsing
+
+   * Hive Searching
+
 * Plug-in System
+
 * Differencing of Registry Files
+
 * Automated Reporting
 
 = Which evidence types are supported? =
@@ -25,4 +29,3 @@
 
 * HTML
 * PDF
-
