@@ -218,6 +218,9 @@ class file_menu:
             self.gui.msgBox("No filename was given for backup. Cannot Proceed.")
             return
 
+        if not zipname.endswith(".zip"):
+            zipname = zipname + ".zip"
+
         self.create_zip(directory, "RDbackup", zipname)
         
         self.gui.msgBox("Backup successfully created.")
