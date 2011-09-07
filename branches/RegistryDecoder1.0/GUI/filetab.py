@@ -291,8 +291,14 @@ class hiveTreeModel(QAbstractItemModel):
             name  = self.tapi.stringid(nodeval.namesid)
             val   = self.tapi.stringid(nodeval.asciisid)
             raw   = self.tapi.stringid(nodeval.rawsid)  #self.tapi.reg_get_raw_value_data(nodeval)#self.tapi.stringid(nodeval.rawsid)
-            rtype = RegTypes[int(nodeval.regtype)]
-            
+
+            # BUG --- not sure how values are falling outside the hash table of types
+            ri    = int(nodeval.regtype)
+            if ri in RegTypes:
+                rtype = RegTypes[ri]
+            else:
+                rtype = "UNKNOWN_TYPE"
+
             if raw and rtype == "REG_BINARY":
                 raw = binascii.unhexlify(raw)
             else:

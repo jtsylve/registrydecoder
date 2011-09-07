@@ -40,6 +40,8 @@ def run_me():
         name = reg_get_value_name(val)
         data = reg_get_value_data(val)
         if name == "MRUListEx" and data:
-            data = ord(data)
+            if len(data) == 1:
+                data = ord(data)
+            
         reg_report((name, data))
 

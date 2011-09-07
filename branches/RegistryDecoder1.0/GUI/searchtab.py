@@ -290,6 +290,9 @@ class searchtab:
 
         sp = self.get_search_params()
 
+        if not sp:
+            return
+
         perform_diff = self.gui.performSearchDiffCheckBox.isChecked()
 
         if perform_diff:

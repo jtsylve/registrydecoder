@@ -222,6 +222,9 @@ class plugintab:
 
         all_results = self.get_plugins_output("pluginFilestreeWidget", plugins)
 
+        if not all_results:
+            return
+
         # tracks if a plugin was found
         tab_gen     = 0
         

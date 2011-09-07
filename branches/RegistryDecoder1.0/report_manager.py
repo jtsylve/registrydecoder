@@ -102,7 +102,12 @@ def get_report_info(tab):
 
         for col in xrange(0, ccount):
 
-            val = unicode(tbl.item(row, col).text())
+            t = tbl.item(row, col)
+            
+            if t:
+                val = unicode(t.text())
+            else:
+                val = unicode("")
 
             data[didx].append(val)
 
