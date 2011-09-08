@@ -248,7 +248,11 @@ def get_file_info(finfo):
     evi_file   = finfo.evidence_file
     group_name = finfo.group_name 
 
-    if group_name != "SINGLE":
+
+    if evi_file.find("acquire_files.db") != -1:
+        filepath = "%s in %s from %s" % (filepath, group_name, evi_file)
+
+    elif group_name != "SINGLE":
         filepath = "%s from %s" % (filepath, evi_file)
 
     # if an alias was given
