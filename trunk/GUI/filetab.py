@@ -390,7 +390,41 @@ class filetab:
     def draw(self):
         self.fileinfo_hash = self.gcommon.fill_tree(self.gui, "fileTreeWidget")     
     
-    # called when 'view' is clicked on file tab
+    def setup_menu(self, widget):
+
+        self.act_handler = self.gcommon.action_handler(self, widget, "Search for Tree Path", 0)
+
+        self.act_handler.setup_menu()        
+
+    # path must have leading \
+    def get_path_popup(self):
+
+        ret = None
+
+        (path, ok) = QInputDialog.getText(self.gui, "Please Enter the Registry Path", "Path:")
+ 
+        if ok and not path.isEmpty():
+            ret = unicode(self.tapi.get_path(path))
+
+        return ret
+
+    def get_tree_node(self):
+            
+        path = self.get_path_popup()
+
+        if not path:
+            return None
+
+        nodes = self.tapi.root_path_node(path)     
+
+        if nodes:
+            node = nodes[-1]
+        else:
+            return None 
+
+        return node
+
+   # called when 'view' is clicked on file tab
     def viewTree(self, fileids=[]):
         
         if not fileids:
@@ -399,11 +433,11 @@ class filetab:
             if not fileids:
                 return
 
-
         for fileid in fileids:
             filepath = self.fileinfo_hash[fileid].reg_file
 
             tab = self.gf.generate_file_view_form(self, fileid, self.gui, filepath)
+            self.setup_menu(tab.viewTree)
 
             self.active_tabs[tab] = fileid
 

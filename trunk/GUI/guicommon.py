@@ -318,4 +318,125 @@ def get_idxs(data_list):
         
     return idxs
 
+########################################## 
+#     right click menu stuff             #
+##########################################
+
+
+class action_handler:
+
+    def __init__(self, ref_obj, widget, message, error_no_path):
+
+        self.ref_obj = ref_obj
+        self.widget  = widget
+        self.message = message
+    
+        # this controls whether to break if path is not found
+        # right clicking from file view means its broken
+        # searching a path could not be there...
+        self.error_no_path = error_no_path
+ 
+    def setup_menu(self):
+
+        self.widget.setContextMenuPolicy( Qt.CustomContextMenu )
+        self.ref_obj.gui.connect(self.widget, SIGNAL('customContextMenuRequested(QPoint)'), self.on_context_menu)
+
+        actionAdd = QAction(QString(self.message), self.widget) 
+
+        self.popMenu = QMenu(self.widget)
+        self.popMenu.addAction(actionAdd)
+
+        self.ref_obj.gui.connect(actionAdd, SIGNAL("triggered()"), self.on_action_fileview)
+
+    # setups right clicking on table cells
+    def on_context_menu(self, point):
+       
+        curtab = self.ref_obj.gui.stackedWidget.currentWidget()
+
+        self.popMenu.exec_( curtab.mapToGlobal(point) )
+   
+    # this is really ugly
+    # sets a tree to a position based on a search hit
+    def on_action_fileview(self):
+   
+        node = self.ref_obj.get_tree_node()     
+
+        if not node:
+            if self.error_no_path == 1:
+                raise RDError("Unable to get node for search to file view")
+            else:
+                self.ref_obj.gui.msgBox("The given path could not be found in the tree.")
+                return 
+                    
+        nodes = self.ref_obj.tapi.node_to_root(node) + [node]
+
+        if self.error_no_path == 1:
+            tab = self.ref_obj.gui.filetab.viewTree([self.ref_obj.gui.case_obj.current_fileid])         
+        else:
+            # already have a tree..
+            tab = self.ref_obj.gui.analysisTabWidget.currentWidget()
+                    
+        tree  = tab.viewTree
+        model = tree.model()
+
+        index = None
+        bad   = 0
+    
+        for node in nodes[1:]:
+            
+            name = self.ref_obj.tapi.key_name(node)
+
+            index = self.find_index(node, model, index)
+
+            if not index:
+
+                if self.error_no_path == 1:
+                    raise RDError("BAD:: no index for %d | %s" % (node.nodeid, name))
+                
+                bad = 1
+                break
+     
+        if not bad:
+            tree.setCurrentIndex(index)
+        else:
+            self.ref_obj.gui.msgBox("The given path could not be found in the tree.")    
+
+    # find where to jump in tree       
+    def find_index(self, target_node, model, start_index=None):
+           
+        ret = None
+
+        if not start_index:
+            start_index = QModelIndex()
+
+        rowcount = model.rowCount(start_index)
+
+        for i in xrange(0, rowcount):
+            p = model.index(i, 0, start_index)
+
+            ent  = p.internalPointer()
+            node = self.ref_obj.tapi.idxtonode(ent.nid)
+
+            if node.nodeid == target_node.nodeid:
+                ret = p
+                break
+
+        return ret
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

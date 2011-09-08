@@ -238,12 +238,18 @@ class searchtab:
             # generate tab if they are there
             if len(results.results) > 0:
                 tab = self.generate_tab(sp, results, results.fileid)
-                self.setup_menu(tab)        
+                self.setup_menu(tab.searchResTable)        
                 gen_tab = 1
 
         # alert if no searches matched across all files ran
         if not gen_tab:
             self.gui.msgBox("The given search parameters returned no results.")
+
+    def setup_menu(self, widget):
+
+        self.act_handler = self.gcommon.action_handler(self, widget, "Switch to File View", 1)
+
+        self.act_handler.setup_menu()        
 
     def get_report_match_info(self, data_ents, fileids):
 
@@ -320,20 +326,6 @@ class searchtab:
         # to catch anyone pulling the stale file id
         self.gui.case_obj.current_fileid = -42
 
-    def setup_menu(self, tab):
-
-        tab = tab.searchResTable
-        
-        tab.setContextMenuPolicy( Qt.CustomContextMenu )
-        self.gui.connect(tab, SIGNAL('customContextMenuRequested(QPoint)'), self.on_context_menu)
-
-        self.actionAdd = QAction(QString("Switch to File View"), tab) 
-
-        self.popMenu = QMenu(tab)
-        self.popMenu.addAction(self.actionAdd)
-
-        self.gui.connect(self.actionAdd, SIGNAL("triggered()"), self.on_action_fileview)
-
     def handle_search_delete(self, event):
 
         curtab = self.gui.analysisTabWidget.currentWidget()
@@ -368,65 +360,13 @@ class searchtab:
         node = self.tapi.root_path_node(fullpath)[-1]
  
         return node
+
+    def get_tree_node(self):
             
-    # this is really ugly
-    # sets a tree to a position based on a search hit
-    def on_action_fileview(self):
-        
         node  = self.get_current_row_node()
 
-        nodes = self.tapi.node_to_root(node) + [node]
+        return node
 
-        tab   = self.gui.filetab.viewTree([self.gui.case_obj.current_fileid])         
-        tree  = tab.viewTree
-        model = tree.model()
-
-        index = None
-        bad   = 0
-    
-        for node in nodes[1:]:
-            
-            name = self.tapi.key_name(node)
-
-            index = self.find_index(node, model, index)
-
-            if not index:
-                raise RDError("BAD:: no index for %d | %s" % (node.nodeid, name))
-                bad = 1
-                break
-     
-        if not bad:
-            tree.setCurrentIndex(index)
-        
-    # find where to jump in tree       
-    def find_index(self, target_node, model, start_index=None):
-           
-        ret = None
-
-        if not start_index:
-            start_index = QModelIndex()
-
-        rowcount = model.rowCount(start_index)
-
-        for i in xrange(0, rowcount):
-            p = model.index(i, 0, start_index)
-
-            ent  = p.internalPointer()
-            node = self.tapi.idxtonode(ent.nid)
-
-            if node.nodeid == target_node.nodeid:
-                ret = p
-                break
-
-        return ret
-
-    # setups right clicking on table cells
-    def on_context_menu(self, point):
-       
-        curtab = self.gui.stackedWidget.currentWidget()
-
-        self.popMenu.exec_( curtab.mapToGlobal(point) )
-   
     # gets all the search hits into a list of searchmatch objects
     def get_search_hits(self, searchterm, partialsearch, searchKeys, searchNames, searchData):
         

@@ -65,7 +65,6 @@ class templateutil:
 
         return self.tree.check_path_from_root(path, self.current_fileid())
 
-
     # returns True if the path exists starting from the root / False otherwise
     def path_exists(self, path):
 
