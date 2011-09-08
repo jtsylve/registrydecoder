@@ -90,15 +90,10 @@ class sqlite3class:
         return ret
         #return self.fetch_one()
 
-    # returns a list of full strings that match the searched string
-    # search solely based on string
-    def string_search_partial(self, searchstr):
-
-        self.cursor.execute("select string from stringtable where string like ?",["%" + searchstr + "%"])
-        
-        return self.cursor.fetchall()
-
     def search_ids(self, searchstr):
+
+        # allow users to search with wildcards
+        searchstr = searchstr.replace("*", "%")
 
         self.cursor.execute("select id from stringtable where string like ?",["%" + searchstr + "%"])
 
