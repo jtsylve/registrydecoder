@@ -207,10 +207,14 @@ class plugintab:
 
         return results
     
+    def get_label_text(self, plugin, filepath):
+
+        return "Results for running %s against %s" % (plugin, filepath)
+
     def generate_tab(self, r):   
  
         # generate form for output
-        tab = self.gf.plugin_export_form(self, r.plugin.pluginname, r.fileid, r.filepath)        
+        tab = self.gf.plugin_export_form(self, r.fileid, r.plugin.pluginname, self.get_label_text(r.plugin.pluginname, r.filepath)) 
         
         self.rm.report_tab_info(self.rm.display_reports[0], r.tm, tab, self.active_tabs, r.fileid, "Plugin", "Plugin Name", r.plugin.pluginname)
 
@@ -339,7 +343,7 @@ class plugintab:
         #print "idxs: %s" % str(idxs)
         
         # will be real values if we decide to report diff output
-        tab = self.gf.plugin_export_form(self, orig.plugin.pluginname, -42, "")
+        tab = self.gf.plugin_export_form(self, -42, orig.plugin.pluginname, self.get_label_text(r.plugin.pluginname, r.filepath))
         
         tab.do_not_export = 1
 

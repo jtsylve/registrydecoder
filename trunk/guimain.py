@@ -441,6 +441,11 @@ class registryDecoderGUI(QMainWindow, Ui_registrydecoder):
 
         if remove == 1: 
             self.analysisTabWidget.removeTab(index)
+
+    def ctrlw_tab(self):
+
+        index = self.analysisTabWidget.currentIndex()
+        self.handleAnalysisTabClose(index)
         
     def msgBox(self, message):
 

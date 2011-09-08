@@ -44,8 +44,14 @@ class generate_forms:
 
         obj.setObjectName(name)
 
-    # this will be combined with search tab generation at some point
-    def plugin_export_form(self, ref_obj, tab_name, fileid, filepath):
+    def generate_search_view_form(self, ref_obj, fileid, tab_name, label_text, results): 
+        return self.search_plugin_export_form(ref_obj, fileid, tab_name, label_text, results)
+
+    def plugin_export_form(self, ref_obj, fileid, tab_name, label_text): 
+        return self.search_plugin_export_form(ref_obj, fileid, tab_name, label_text)
+
+    # this is pretty ugly, a mix up of a few functions, has cruft everywhere, etc
+    def search_plugin_export_form(self, ref_obj, fileid, tab_name, label_text, results=None):
 
         pluginTab = QWidget()
         searchTab = pluginTab
@@ -60,15 +66,14 @@ class generate_forms:
         # search results label
         label_12 = QLabel(searchTab)
         self.setObjectName(label_12, "label_12")
-        label_12.setText(QString("Results for running %s against %s" % (tab_name, filepath)))
+        
+        label_12.setText(QString(label_text))
+        
         gridLayout_9.addWidget(label_12, 0, 0, 1, 1)
 
         tableWidget = QTableWidget(tab)
         self.setObjectName(tableWidget, "taableWidget")
         tableWidget.setEditTriggers(QAbstractItemView.NoEditTriggers);
-
-        #tableWidget.setColumnCount(3)
-        #tableWidget.setRowCount(len(results))
 
         gridLayout_9.addWidget(tableWidget, 1, 0, 1, 1)
 
@@ -103,22 +108,34 @@ class generate_forms:
         createReportPushButton.setText("Create Report")
      
         # register signals
-        self.gui.connect(createReportPushButton, SIGNAL("clicked()"), ref_obj.createReportClicked)  
-        SearchReportFilenameLineEdit.mousePressEvent =  self.gui.get_report_name
+        ref_obj.gui.connect(createReportPushButton, SIGNAL("clicked()"), ref_obj.createReportClicked)  
+        SearchReportFilenameLineEdit.mousePressEvent =  ref_obj.gui.get_report_name
+
+        self.set_ctrlw_handler(ref_obj.gui, new_tab)
 
         for report in ref_obj.rm.file_reports:
             searchReportComboBox.addItem(QString(report.name))
 
-        self.gui.analysisTabWidget.addTab(new_tab, QString(tab_name))
+        ref_obj.gui.analysisTabWidget.addTab(new_tab, QString(tab_name))
 
-        # plugin stuff
         tableWidget.setSortingEnabled(True)
+
+        # this is sent by search tabs
+        if results:
+            tableWidget.setColumnCount(3)
+            tableWidget.setRowCount(len(results))
+            tableWidget.keyPressEvent = ref_obj.handle_search_delete
+
+            new_tab.searchResTable = tableWidget
+            new_tab.searchResLabel = label_12
+
 
         # keep references to the table and the combobox
         new_tab.tblWidget    = tableWidget
         new_tab.cbox         = searchReportComboBox
         new_tab.fileid       = fileid
         new_tab.reportname   = SearchReportFilenameLineEdit
+        
         new_tab.messageLabel = label_12
         new_tab.pushbutton   = createReportPushButton
         new_tab.label1       = label_13
@@ -126,6 +143,16 @@ class generate_forms:
 
         return new_tab
     
+    def set_ctrlw_handler(self, gui, new_tab):
+
+        actt = QAction(gui)
+        actt.setAutoRepeat(False)
+        actt.setShortcut("Ctrl+W")
+        
+        gui.connect(actt, SIGNAL("triggered()"), gui.ctrlw_tab)
+        
+        new_tab.addAction(actt)
+
     # form used to export all searches/plugins/etc
     def export_all_form(self, ref_obj, tab_name):
 
@@ -205,7 +232,9 @@ class generate_forms:
         
         # add with proper name
         self.gui.analysisTabWidget.addTab(exportTab, QString(tab_name))
-     
+    
+        self.set_ctrlw_handler(self.gui, exportTab)
+ 
         for report in ref_obj.rm.file_reports:
             bulkExportComboBox.addItem(QString(report.name))
 
@@ -291,85 +320,5 @@ class generate_forms:
 
         return fileViewTab 
  
-    def generate_search_view_form(self, ref_obj, fileid, gui, filepath, searchterm, results):
-
-        searchTab = QWidget()
-        tab       = searchTab
-
-        self.setObjectName(searchTab, "searchTab")
-        searchGrid   = QGridLayout(searchTab)
-        gridLayout_9 = searchGrid
-        self.setObjectName(searchGrid, "searchGrid")
-
-        # search results label
-        label_12 = QLabel(searchTab)
-        self.setObjectName(label_12, "label_12")
-        label_12.setText(QString("Results for searching %s against %s" % (searchterm, filepath)))
-        gridLayout_9.addWidget(label_12, 0, 0, 1, 1)
-
-        tableWidget = QTableWidget(tab)
-        self.setObjectName(tableWidget, "taableWidget")
-        tableWidget.setEditTriggers(QAbstractItemView.NoEditTriggers);
-
-        tableWidget.setColumnCount(3)
-        tableWidget.setRowCount(len(results))
-
-        gridLayout_9.addWidget(tableWidget, 1, 0, 1, 1)
-
-        gridLayout_8 = QGridLayout()
-        self.setObjectName(gridLayout_8, "gridLayout_8")
-
-        label_13 = QLabel(tab)
-        label_13.setObjectName("label_13")
-        gridLayout_8.addWidget(label_13, 0, 0, 1, 1)
-
-        label_14 = QLabel(tab)
-        self.setObjectName(label_14, "label_14")
-        gridLayout_8.addWidget(label_14, 0, 1, 1, 1)
-
-        searchReportComboBox = QComboBox(tab)
-        self.setObjectName(searchReportComboBox, "ssearchReportComboBox")
-        gridLayout_8.addWidget(searchReportComboBox, 1, 0, 1, 1)
-
-        SearchReportFilenameLineEdit = QLineEdit(tab)
-        self.setObjectName(SearchReportFilenameLineEdit, "SearchReportFilenameLineEdit")
-        gridLayout_8.addWidget(SearchReportFilenameLineEdit, 1, 1, 1, 1)
-
-        createReportPushButton = QPushButton(tab)
-        self.setObjectName(createReportPushButton, "createReportPushButton")
-
-        gridLayout_8.addWidget(createReportPushButton, 1, 2, 1, 1)
-        gridLayout_9.addLayout(gridLayout_8, 2, 0, 1, 1)
-
-        label_13.setText("Report Format")
-        label_14.setText("Report Filename")
-
-        createReportPushButton.setText("Create Report")
-        
-        # add reports to plugin dropdown
-        for report in ref_obj.rm.file_reports:
-            searchReportComboBox.addItem(QString(report.name))
-
-        # register signal
-        self.gui.connect(createReportPushButton,       SIGNAL("clicked()"), ref_obj.createSearchReportClicked)  
-
-        SearchReportFilenameLineEdit.mousePressEvent =  self.gui.get_report_name
-
-        self.gui.analysisTabWidget.addTab(tab, QString("Search Results - %s" % searchterm))
-
-        tableWidget.keyPressEvent = ref_obj.handle_search_delete
-        tableWidget.setSortingEnabled(True)
-
-        tab.searchResTable = tableWidget
-        tab.searchResLabel = label_12
-        tab.cbox           = searchReportComboBox
-        tab.reportname     = SearchReportFilenameLineEdit
-        tab.pushbutton     = createReportPushButton
-        tab.label1       = label_13
-        tab.label2       = label_14
-
-        tab.fileid = fileid
-
-        return tab
 
 

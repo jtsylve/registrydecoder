@@ -195,10 +195,25 @@ class searchtab:
 
         return search_results(filepath, evi_file, group_name, results, fileid)
 
+    def get_label_text(self, searchterm, filepath):
+
+        return "Results for searching %s against %s" % (searchterm, filepath)
+
+    def get_tab_text(self, searchterm):
+
+        return "Seach Results - %s" % searchterm
+
+    def do_gen_tab(self, sp, sr, fileid):
+
+        h = self.get_tab_text(sp.searchterm)
+        l = self.get_label_text(sp.searchterm, sr.filepath)
+
+        return self.gf.generate_search_view_form(self, fileid, h, l, sr.results)
+
     # genereates a search result tab and fills the GUI table
     def generate_tab(self, sp, sr, fileid, color_idxs=[]):
 
-        tab = self.gf.generate_search_view_form(self, fileid, self.gui, sr.filepath, sp.searchterm, sr.results)
+        tab = self.do_gen_tab(sp, sr, fileid)
 
         (report_vals, match_idxs) = self.get_report_vals(sr.results, fileid)
 
@@ -275,7 +290,7 @@ class searchtab:
 
         # will be real values if we decide to report diff output
         sr = search_results("", "", "", data_list, -42)
-        tab = self.gf.generate_search_view_form(self, -42, self.gui, sr.filepath, sp.searchterm, sr.results)
+        tab = self.do_gen_tab(sp, sr, -42)
         
         tab.do_not_export = 1
 
@@ -535,8 +550,8 @@ class searchtab:
 
         return ret
 
-    def createSearchReportClicked(self): 
-        self.rh.createReportClicked("Plugin Single")
+    def createReportClicked(self): 
+        self.rh.createReportClicked("Search Single")
     
     def diffBoxClicked(self, isChecked):
         self.gcommon.diffBoxClicked(self, isChecked, "searchDiffTreeWidget")
