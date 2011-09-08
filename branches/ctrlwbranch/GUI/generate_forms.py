@@ -111,6 +111,8 @@ class generate_forms:
         ref_obj.gui.connect(createReportPushButton, SIGNAL("clicked()"), ref_obj.createReportClicked)  
         SearchReportFilenameLineEdit.mousePressEvent =  ref_obj.gui.get_report_name
 
+        self.set_ctrlw_handler(ref_obj.gui, new_tab)
+
         for report in ref_obj.rm.file_reports:
             searchReportComboBox.addItem(QString(report.name))
 
@@ -141,6 +143,16 @@ class generate_forms:
 
         return new_tab
     
+    def set_ctrlw_handler(self, gui, new_tab):
+
+        actt = QAction(gui)
+        actt.setAutoRepeat(False)
+        actt.setShortcut("Ctrl+W")
+        
+        gui.connect(actt, SIGNAL("triggered()"), gui.ctrlw_tab)
+        
+        new_tab.addAction(actt)
+
     # form used to export all searches/plugins/etc
     def export_all_form(self, ref_obj, tab_name):
 
@@ -220,7 +232,9 @@ class generate_forms:
         
         # add with proper name
         self.gui.analysisTabWidget.addTab(exportTab, QString(tab_name))
-     
+    
+        self.set_ctrlw_handler(self.gui, exportTab)
+ 
         for report in ref_obj.rm.file_reports:
             bulkExportComboBox.addItem(QString(report.name))
 
