@@ -47,7 +47,7 @@ class report_handler:
     def export_report(self, finfoTab, dataTab, cinfo, append=0):
 
         # information about tab being processed
-        
+ 
         try:
             tab_info    = self.active_tabs[dataTab]
         except:
@@ -56,6 +56,7 @@ class report_handler:
             tab_info = act_tabs[dataTab]
             
         report   = self.get_plugin_export_format(finfoTab.cbox)
+        repext   = "." + report.extension
 
         filename = self.get_filename(finfoTab.reportname) 
         
@@ -63,6 +64,10 @@ class report_handler:
             self.gui.msgBox("Create Report button clicked but no report filename was given. Cannot Proceed.")
             return None
               
+        # if the user didn't supply an extension, then append it (given from report module)
+        if not filename.endswith(repext):
+            filename = filename + repext
+
         report.report_single(report, filename, tab_info, cinfo)
 
         if append == 0:
