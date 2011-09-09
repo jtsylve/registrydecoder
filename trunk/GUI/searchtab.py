@@ -95,6 +95,8 @@ class searchtab:
 
         self.gui = gui
 
+        self.act_handlers = {}
+
     def draw(self):
         self.fileinfo_hash = self.gcommon.fill_tree(self.gui, "searchTreeWidget")     
 
@@ -247,9 +249,9 @@ class searchtab:
 
     def setup_menu(self, widget):
 
-        self.act_handler = self.gcommon.action_handler(self, widget, "Switch to File View", 1)
+        self.act_handlers[widget] = self.gcommon.action_handler(self, widget, "Switch to File View", 1)
 
-        self.act_handler.setup_menu()        
+        self.act_handlers[widget].setup_menu()        
 
     def get_report_match_info(self, data_ents, fileids):
 
