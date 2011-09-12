@@ -106,9 +106,13 @@ class acquire_files:
 
         data = ""
         offset = 0
-        size = fd.info.meta.size
         BUFF_SIZE = 1024 * 1024
-        
+
+        if fd.info.meta:
+            size = fd.info.meta.size
+        else:
+            return ""            
+
         while offset < size:
             available_to_read = min(BUFF_SIZE, size - offset)
             cur = fd.read_random(offset, available_to_read)
@@ -150,12 +154,19 @@ class acquire_files:
 
         data = self.read_file(f)
  
+        if data == "":
+            print "grab_file: unable to acquire file %s from %s" % (fname, group_name)
+            return
+
         # copy file to acquire_store
         fd = open(os.path.join(self.store_dir, "%d" % self.regfile_ctr), "wb")
         fd.write(data)
         fd.close()
 
-        mtime = f.info.meta.mtime
+        if f.info.meta:
+            mtime = f.info.meta.mtime
+        else:
+            mtime = 0
 
         if realname:
             fname = realname
@@ -246,9 +257,13 @@ class acquire_files:
     # grabs each registry file from an RP###/snapshot directory
     def parse_rp_folder(self, fs, directory, group_name):
 
-        # open file as a directory
-        directory = fs.open_dir(inode=directory.info.meta.addr)
-        
+        if directory.info.meta:
+            # open file as a directory
+            directory = fs.open_dir(inode=directory.info.meta.addr)
+        else:
+            print "parse_rp_folder: unable to get %s" % group_name
+            return 
+
         # walk the snaphsot dir
         for f in directory:
             
@@ -260,8 +275,12 @@ class acquire_files:
     # parse RP structure
     def parse_system_restore(self, fs, directory):
 
-        # directory is sent in as a pytsk3.File
-        directory = fs.open_dir(inode=directory.info.meta.addr)
+        if directory.info.meta:
+            # directory is sent in as a pytsk3.File
+            directory = fs.open_dir(inode=directory.info.meta.addr)
+        else:
+            print "parse_system_restore: unable to do anything"
+            return
 
         # this uglyness walks each RP###/snapshot dir and sends to the file grab function
         for subdir in directory:
@@ -269,8 +288,12 @@ class acquire_files:
             fname = subdir.info.name.name
 
             if fname.startswith("RP"):
- 
-                subdir = fs.open_dir(inode=subdir.info.meta.addr)
+
+                if subdir.info.meta: 
+                    subdir = fs.open_dir(inode=subdir.info.meta.addr)
+                else:
+                    print "parse_system_restore: Unable to get addr for %s" % fname
+                    return                    
 
                 for f in subdir:
 
