@@ -407,7 +407,11 @@ class acquire_files:
     def acquire_files(self, filepath, current, backup):
 
         # IMG_INFO
-        img = pytsk3.Img_Info(filepath)
+        try:
+            img = pytsk3.Img_Info(filepath)
+        except Exception, e:
+            print "IMG_Info: unable to open image %s error %s" % (filepath, str(e))
+            return
 
         if self.is_mbr(filepath):
             offsets = self.parse_mbr(filepath)
@@ -423,7 +427,11 @@ class acquire_files:
         for offset in offsets:
 
             # FS_INFO
-            fs = pytsk3.FS_Info(img, offset)
+            try:
+                fs = pytsk3.FS_Info(img, offset)
+            except Exception, e:
+                print "FS_Info: unable to get offset %d from filepath %s error: %s" % (offset, filepath, str(e))
+                continue
 
             self.refreshgui()        
                                       
