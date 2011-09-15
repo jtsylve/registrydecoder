@@ -83,6 +83,17 @@ def get_report_info(tab):
     # keeps track of where we are in the data list
     didx = 0
 
+    # limit to users selections
+    selected_rows = []    
+
+    selected = tbl.selectedIndexes()
+    
+    selectonly = len(selected) > 0
+
+    for index in selected:
+    
+        selected_rows.append(index.row())
+
     if tm.plugin_set_header:
 
         for c in xrange(0, ccount):
@@ -98,12 +109,16 @@ def get_report_info(tab):
 
     for row in xrange(0, rcount):
 
+        # if the user chose specific items then only report them
+        if selectonly and not row in selected_rows:
+            continue
+        
         data.append([]) 
 
         for col in xrange(0, ccount):
 
             t = tbl.item(row, col)
-            
+    
             if t:
                 val = unicode(t.text())
             else:
