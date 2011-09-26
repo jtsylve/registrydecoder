@@ -300,7 +300,7 @@ class hiveTreeModel(QAbstractItemModel):
                 rtype = "UNKNOWN_TYPE"
 
             if raw and rtype == "REG_BINARY":
-                raw = binascii.unhexlify(raw)
+                raw = "".join([chr(int(raw[idx:idx+2],16)) for (idx, val) in enumerate(raw) if idx % 2 == 0])
             else:
                 raw = val
 

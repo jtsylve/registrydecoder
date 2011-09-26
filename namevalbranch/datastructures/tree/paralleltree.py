@@ -188,9 +188,12 @@ class ptree:
     
         if node:
             # take the final value_list
-            node.value = element.value_list
+            node.valuelist = element.value_list
+            node.values    = {}
+
             self.obj.vtable.create_values(node, fileid)
-            del node.value
+
+            del node.valuelist
         
             node.timestamps[fileid] = timestamp
         

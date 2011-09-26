@@ -43,6 +43,13 @@ class valuesholder:
         self.obj = obj
         self.stringtable = obj.stringtable
         self.db_connect(obj.case_directory)
+
+        self.vid_cache = {}
+
+        self.before_pickle()
+
+    def before_pickle(self):
+        self.vals_hash = {}
         
     def db_connect(self, case_dir):
 
@@ -77,11 +84,9 @@ class valuesholder:
         else:
             print "Unknown type: %s | %s" % (atype,asciidata)
             
-        #print " | after | %s | %s" % (type(asciidata), asciidata)
-        
         return asciidata
         
-    def record_name_data(self, val, node, fileid):
+    def record_name_data(self, val):
 
         if not val.name or val.name == "":
             name = "NONE"
@@ -92,8 +97,8 @@ class valuesholder:
         
         asciidata = self.get_ascii_type(val.data)
         
-        if val.data and regtype == 3:
-            rawdata = binascii.hexlify(val.data)
+        if val.data and regtype == 3: # REG_BINARY
+            rawdata  = "".join(["%.02x" % ord(r) for r in asciidata])
         else:
             rawdata = asciidata
         
@@ -101,18 +106,42 @@ class valuesholder:
         aid = self.stringtable.getadd_string(asciidata)
         rid = self.stringtable.getadd_string(rawdata)
 
-        self.cursor.execute("insert into keyvalues (nodeid, namesid, fileid, rawsid, asciisid, regtype) values (?,?,?,?,?,?) ", \
-             (node.nodeid, nid, fileid, rid, aid, regtype))
+        key = "%d|%d|%d" % (nid, aid, rid)
+
+        if not key in self.vals_hash:
+        
+            self.cursor.execute("insert into keyvalues (namesid, rawsid, asciisid, regtype) values (?,?,?,?) ", \
+                 (nid, rid, aid, regtype))
+
+            vid = self.cursor.execute("SELECT last_insert_rowid()").fetchone()[0]
+            
+            self.vals_hash[key] = vid
+
+        else:
+            vid = self.vals_hash[key]
+
+        return vid
 
     # set the vid for each node
     def create_values(self, node, fileid):
 
-        valuelist  = node.value
+        valuelist  = node.valuelist
 
         # list of values from reg parser - right pane
         for val in valuelist:
-            self.record_name_data(val, node, fileid)
-        
+            vid = self.record_name_data(val)
+            
+            # associate the name/value pair with its node & fileid
+            if not vid in node.values:
+                node.values[vid] = []
+
+            node.values[vid].append(fileid)
+
+            if not vid in self.vid_cache:
+                self.vid_cache[vid] = []
+
+            self.vid_cache[vid].append(node)
+ 
     def or_statement(self, column, int_list):
 
         fstr = ""
@@ -124,6 +153,7 @@ class valuesholder:
 
         return fstr
        
+    '''
     # ignore this uglyness....
     def query_fileids(self, query, fileids, sidcolumn="", stringids=[]):
     
@@ -145,25 +175,57 @@ class valuesholder:
 
             fstr = fstr + self.or_statement(sidcolumn, stringids)
 
-        #print "select nodeid,namesid,asciisid,rawsid,regtype from keyvalues where %s" % fstr
-        self.cursor.execute("select nodeid,namesid,asciisid,rawsid,regtype from keyvalues where %s" % fstr)
+        self.cursor.execute("select namesid,asciisid,rawsid,regtype from keyvalues where %s" % fstr)
       
         for v in self.cursor.fetchall():
-            ret.append(nodevalue(v[0], v[1], v[2], v[3], v[4]))
+            ret.append(nodevalue(v[0], v[1], v[2], v[3]))
                         
         return ret    
+    '''
 
-    def values_for_node(self, node, fileids):
+    def check_fileids(self, node_fileids, good_fileids):
 
-        return self.query_fileids("nodeid=%d " % node.nodeid, fileids)
+        # not a node for the root
+        if good_fileids[0] == -1:
+            goodids = None
+        else:
+            goodids = list(set(good_fileids) & set(node_fileids))
+
+        return goodids
+
+    def values_for_node(self, node, fileids, extra_query=""):
+
+        ret = []
+        
+        if not node:
+            return ret
+
+        for vid in node.values:
+       
+            # get the fileids for this particular value
+            node_fileids = node.values[vid]
+
+            if not self.check_fileids(node_fileids, fileids):
+                continue
+            
+            query = "select namesid,asciisid,rawsid,regtype from keyvalues where id=%d " % vid
+
+            query = query + extra_query
+
+            self.cursor.execute(query)
+
+            for v in self.cursor.fetchall():
+
+                ret.append(nodevalue(node.nodeid, v[0], v[1], v[2], v[3]))
+        
+        return ret
 
     def key_name(self, node, name, fileids):
 
-        sid = self.stringtable.string_id(name)
-        nname = self.stringtable.idxtostr(node.sid)
+        sid   = self.stringtable.string_id(name)
 
         if sid:
-            ret = self.query_fileids("nodeid=%d and namesid=%d "  % (node.nodeid, sid), fileids)
+            ret = self.values_for_node(node, fileids, "and namesid=%d" % sid)
         else:
             ret = None
 
@@ -175,13 +237,15 @@ class valuesholder:
         vid = self.stringtable.string_id(value)
 
         if vid and nid:
-            ret = self.query_fileids("nodeid=%d and namesid=%d and asciisid=%d "  % (node.nodeid, nid, vid), fileids)
+            ret = self.values_for_node(node, fileids, "and namesid=%d and asciisid=%d"  % (nid, vid))
         else:
             ret = None
 
         return ret
 
-    def nodevals_for_search(self, column, searchfor, fileids, partial):
+    def nodevals_for_search(self, sidcolumn, searchfor, fileids, partial):
+
+        ret = []
         
         if partial:
             sids = self.stringtable.search_ids(searchfor)
@@ -190,13 +254,27 @@ class valuesholder:
             if sids:
                 sids = [sids]
 
-        if sids and sids != -1:
-            ret = self.query_fileids("", fileids, column, sids)
-        else:
-            ret = []
+        if  sids and sids != -1:
+            
+            orp = self.or_statement(sidcolumn, sids)
+
+            query = "select id from keyvalues where %s" % orp
+
+            self.cursor.execute(query)
+
+            for (vid,) in self.cursor.fetchall():
+
+                if not vid in self.vid_cache:
+                    continue
+
+                nodes = self.vid_cache[vid] 
+
+                for node in nodes:
+
+                    ret = ret + self.values_for_node(node, fileids, "and " + orp)
 
         return ret
-    
+            
     def names_for_search_partial(self, searchfor, fileids):
         return self.nodevals_for_search("namesid", searchfor, fileids, 1)
 

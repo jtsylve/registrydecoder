@@ -67,8 +67,8 @@ class case_processing:
             cursor.execute("PRAGMA temp_store=2")
 
             if i == 0:        
-                cursor.execute("create table keyvalues (nodeid int, namesid int, fileid int, rawsid int , asciisid int, regtype text, id integer primary key asc)")
-                cursor.execute("create index keyvalindex on keyvalues (nodeid,fileid)")
+                cursor.execute("create table keyvalues (namesid int, rawsid int , asciisid int, regtype text, id integer primary key asc)")
+                cursor.execute("create index keyvalindex on keyvalues (namesid, asciisid)")
             elif i == 1:
                 cursor.execute("create table treenodes (nodeid int unique, parentid int, stringid int, id integer primary key asc)")
                 cursor.execute("create index treeindex on treenodes (nodeid, parentid, stringid)") 
@@ -170,7 +170,8 @@ class case_processing:
 
         # delete lists and such that aren't needed anymore
         case_obj.tree.before_pickle()
-        
+        case_obj.vtable.before_pickle()       
+ 
         self.evidence_db.update_label(gui_ref.gui, "Final Processing")
 
         pickle_name = os.path.join(case_obj.case_directory,"caseobj.pickle")

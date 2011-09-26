@@ -56,7 +56,7 @@ class sqlite3class:
 
     def insert_string(self, instr):
 
-        self.cursor.execute("insert or replace into stringtable (string) values (?)",[instr])
+        self.cursor.execute("insert into stringtable (string) values (?)",[instr])
 
         sid = self.cursor.execute("SELECT last_insert_rowid()").fetchone()[0]
         
