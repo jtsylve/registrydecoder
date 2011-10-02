@@ -68,7 +68,7 @@ class case_processing:
 
             if i == 0:        
                 cursor.execute("create table keyvalues (namesid int, rawsid int , asciisid int, regtype text, id integer primary key asc)")
-                cursor.execute("create index keyvalindex on keyvalues (namesid, asciisid)")
+                cursor.execute("create index keyvalindex on keyvalues (id)")
             elif i == 1:
                 cursor.execute("create table treenodes (nodeid int unique, parentid int, stringid int, id integer primary key asc)")
                 cursor.execute("create index treeindex on treenodes (nodeid, parentid, stringid)") 
