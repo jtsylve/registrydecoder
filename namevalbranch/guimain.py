@@ -36,7 +36,7 @@ if hasattr(sys, "frozen"):
     except ImportError:
         pass
 
-profile = 1 
+profile = 0
 
 import stat, time, cStringIO
 import traceback
