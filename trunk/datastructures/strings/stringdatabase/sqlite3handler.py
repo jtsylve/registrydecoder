@@ -34,21 +34,27 @@ class sqlite3class:
     def commit_db(self):
         self.conn.commit()
 
+    def apply_pragmas(self):
+ 
+        self.cursor.execute("PRAGMA default_cache_size=50000")
+        self.cursor.execute("PRAGMA synchronous=OFF")
+        self.cursor.execute("PRAGMA count_changes=OFF")
+        self.cursor.execute("PRAGMA journal_mode=MEMORY")
+        self.cursor.execute("PRAGMA temp_store=2")
+
     def connect_db(self, case_dir):
         
         self.filename = os.path.join(case_dir,"stringtable.db")
         self.conn   = sqlite3.connect(self.filename)
         self.cursor = self.conn.cursor()
 
+        self.apply_pragmas()
+
     # creates the database and writes it to disk
     def create_database(self):
 
-        self.cursor.execute("PRAGMA default_cache_size=50000")
-        self.cursor.execute("PRAGMA synchronous=OFF")
-        self.cursor.execute("PRAGMA count_changes=OFF")
-        self.cursor.execute("PRAGMA journal_mode=MEMORY")
-        self.cursor.execute("PRAGMA temp_store=2")
-    
+        self.apply_pragmas()
+
         self.cursor.execute("create table stringtable (string text unique collate nocase, id integer primary key asc)")
         self.cursor.execute("create index searchindex on stringtable (string collate nocase)")
 

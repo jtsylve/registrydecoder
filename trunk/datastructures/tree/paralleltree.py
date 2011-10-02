@@ -149,9 +149,6 @@ class ptree:
 
         firstnode = 1
 
-        #idx = 0
-        #max = len(element.path) - 1
-        
         # create for all strings that don't exist
         for curkey in element.path:
                      
@@ -188,9 +185,14 @@ class ptree:
     
         if node:
             # take the final value_list
-            node.value = element.value_list
+            node.valuelist = element.value_list
+            
+            if not hasattr(node, "values"):
+                node.values = {}
+
             self.obj.vtable.create_values(node, fileid)
-            del node.value
+
+            del node.valuelist
         
             node.timestamps[fileid] = timestamp
         
