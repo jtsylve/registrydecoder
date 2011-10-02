@@ -406,9 +406,15 @@ class searchtab:
             
             r = results[row]
             
-            lastwrite = r.node.timestamps[fileid]
-            lastwrite = datetime.datetime.fromtimestamp(lastwrite).strftime('%Y/%m/%d %H:%M:%S UTC')
-
+            try:
+                lastwrite = r.node.timestamps[fileid]
+            except:
+                print "unable to get fileid %d | %s for %s" % (fileid, str(r.node.timestamps), r.node.fullpath)
+                lastwrite = "BAD"
+                
+            else:
+                lastwrite = datetime.datetime.fromtimestamp(lastwrite).strftime('%Y/%m/%d %H:%M:%S UTC')
+ 
             vals  = [lastwrite, r.node.fullpath, r.name, r.data]
 
             match_idxs.append(r.match+1)

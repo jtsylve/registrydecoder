@@ -56,6 +56,12 @@ class valuesholder:
         self.conn   = sqlite3.connect(os.path.join(case_dir, "namedata.db"))
         self.cursor = self.conn.cursor()
 
+        self.cursor.execute("PRAGMA default_cache_size=20000")
+        self.cursor.execute("PRAGMA synchronous=OFF")
+        self.cursor.execute("PRAGMA count_changes=OFF")
+        self.cursor.execute("PRAGMA journal_mode=MEMORY")
+        self.cursor.execute("PRAGMA temp_store=2")
+
     def get_ascii_type(self, asciidata):
         
         if not asciidata:
@@ -140,49 +146,19 @@ class valuesholder:
             if not vid in self.vid_cache:
                 self.vid_cache[vid] = []
 
-            self.vid_cache[vid].append(node)
+            if not node in self.vid_cache[vid]:
+                self.vid_cache[vid].append(node)
  
     def or_statement(self, column, int_list):
 
         fstr = ""
 
         if int_list:
-            fstr = "( " + ''.join(["%s=%d or " % (column,f) for f in int_list])
-            fstr = fstr[:-3]
-            fstr = fstr + ")"
+            fstr = "%s in (" % column
+            fstr = fstr + ",".join(["%d" % sid for sid in int_list]) + ") "
 
         return fstr
        
-    '''
-    # ignore this uglyness....
-    def query_fileids(self, query, fileids, sidcolumn="", stringids=[]):
-    
-        ret = []
-        dosids = 0
-
-        fstr = query
-        
-        if fileids[0] != -1:
-            if query:
-                fstr = fstr + " and "
-
-            fstr = fstr + self.or_statement("fileid", fileids)
-            dosids = 1
-
-        if sidcolumn:
-            if dosids:            
-                fstr = fstr + " and "
-
-            fstr = fstr + self.or_statement(sidcolumn, stringids)
-
-        self.cursor.execute("select namesid,asciisid,rawsid,regtype from keyvalues where %s" % fstr)
-      
-        for v in self.cursor.fetchall():
-            ret.append(nodevalue(v[0], v[1], v[2], v[3]))
-                        
-        return ret    
-    '''
-
     def check_fileids(self, node_fileids, good_fileids):
 
         # not a node for the root
@@ -201,7 +177,9 @@ class valuesholder:
             return ret
 
         for vid in node.values:
-       
+    
+            cur = []
+   
             # get the fileids for this particular value
             node_fileids = node.values[vid]
 
@@ -216,8 +194,10 @@ class valuesholder:
 
             for v in self.cursor.fetchall():
 
-                ret.append(nodevalue(node.nodeid, v[0], v[1], v[2], v[3]))
+                cur.append(nodevalue(node.nodeid, v[0], v[1], v[2], v[3]))
         
+            ret = ret + cur
+
         return ret
 
     def key_name(self, node, name, fileids):
@@ -262,13 +242,21 @@ class valuesholder:
 
             self.cursor.execute(query)
 
-            for (vid,) in self.cursor.fetchall():
-
+            # the value ids that matched the search
+            vids = [x[0] for x in self.cursor.fetchall()]
+            
+            # remove where the same name/data matched multiple times
+            vids = list(set(vids))
+            
+            # get the value id for all matching nodes
+            for vid in vids:
+ 
                 if not vid in self.vid_cache:
                     continue
 
                 nodes = self.vid_cache[vid] 
 
+                # get the values for each node
                 for node in nodes:
 
                     ret = ret + self.values_for_node(node, fileids, "and " + orp)
