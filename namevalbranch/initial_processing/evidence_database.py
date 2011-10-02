@@ -281,6 +281,9 @@ class evidence_database:
 
         for dbpath in fd.readlines():
 
+            if dbpath[-1] == '\n':
+                dbpath = dbpath[:-1]
+
             (dirname, fname) = os.path.split(dbpath)
 
             self.handle_image_files(case_dir, dirname, fname, dbpath)
