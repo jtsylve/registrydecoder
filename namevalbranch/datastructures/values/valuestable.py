@@ -139,15 +139,16 @@ class valuesholder:
             
             # associate the name/value pair with its node & fileid
             if not vid in node.values:
-                node.values[vid] = []
+                node.values[vid] = {}
 
-            node.values[vid].append(fileid)
+            if not fileid in node.values[vid]:
+                node.values[vid][fileid] = 1
 
             if not vid in self.vid_cache:
-                self.vid_cache[vid] = []
+                self.vid_cache[vid] = {}
 
             if not node in self.vid_cache[vid]:
-                self.vid_cache[vid].append(node)
+                self.vid_cache[vid][node] = 1
  
     def or_statement(self, column, int_list):
 
@@ -181,7 +182,7 @@ class valuesholder:
             cur = []
    
             # get the fileids for this particular value
-            node_fileids = node.values[vid]
+            node_fileids = node.values[vid].keys()
 
             if not self.check_fileids(node_fileids, fileids):
                 continue
@@ -254,7 +255,7 @@ class valuesholder:
                 if not vid in self.vid_cache:
                     continue
 
-                nodes = self.vid_cache[vid] 
+                nodes = self.vid_cache[vid].keys()
 
                 # get the values for each node
                 for node in nodes:
