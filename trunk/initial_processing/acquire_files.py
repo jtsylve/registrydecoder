@@ -27,9 +27,10 @@ from errorclasses import *
 from guicontroller import *
 import registry_sig
 import acquirefiles.acquire_files as aqfile
-import shutil, sys
+import shutil, sys, re
 
 import pytsk3
+import ewf
 
 class acquire_files:
 
@@ -57,8 +58,7 @@ class acquire_files:
         shutil.copy2(evidence_file,filename)
         
         self.singlefilecounter = self.singlefilecounter + 1
-       
-    # check if disk image
+    
     def is_mbr(self, filepath):
 
         ret = False
@@ -79,12 +79,7 @@ class acquire_files:
                 ret = True
 
         return ret
-
-    # checks if given file is a partition image
-    def is_disk_image(self, evidence_file):
-
-        return self.is_mbr(evidence_file) or self.is_partition_image(evidence_file)
-        
+       
     def is_partition_image(self, evidence_file):
 
         isimage = 1
@@ -98,6 +93,10 @@ class acquire_files:
 
         return isimage
 
+    # checks if given file is a partition image
+    def is_disk_image(self, evidence_file):
+
+        return self.is_mbr(evidence_file) or self.is_partition_image(evidence_file)
  
     # tries to determine the file type of 'evidence_file' based on
     # extension 
@@ -105,7 +104,7 @@ class acquire_files:
 
         extension = os.path.splitext(evidence_file)[-1].lower()
 
-        if extension in (".img",".dd",".raw"):
+        if extension in (".img",".dd",".raw") or re.search('^(.e\d{1,})$', extension):
             etype = [DD]
 
         elif extension  == ".db":
@@ -153,8 +152,17 @@ class acquire_files:
 
         elif evidence_type[0] == DD:
             # pytsk3
-            ac = aqfile.acquire_files(gui_ref.directory, gui_ref.gui)
-            ac.acquire_files(evidence_file, gui_ref.gui.acquire_current, gui_ref.gui.acquire_backups)
+            ac = aqfile.acquire_files(gui_ref.directory, gui_ref)
+            
+            # command line
+            if not hasattr(gui_ref, "gui"):
+                acq_current = gui_ref.acquire_current
+                acq_backup  = gui_ref.acquire_backups
+            else:
+                acq_current = gui_ref.gui.acquire_current
+                acq_backup  = gui_ref.gui.acquire_backups
+
+            ac.acquire_files(evidence_file, acq_current, acq_backup)
 
         elif evidence_type[0] == SINGLEFILE:
             self.add_single_file(evidence_file, evidence_type[1], gui_ref)            

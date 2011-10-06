@@ -83,10 +83,11 @@ class evidence_database:
         self.cursor = self.conn.cursor()
         
         self.cursor.execute("create table evidence_sources (filename text, file_alias text, evidence_type int, md5sum text, mtime int, id integer primary key asc)")
-
-        # used to group files together from a disk image or db such as 'current' or system restore pointis
-        self.cursor.execute("create table file_groups (group_name text, evidence_file_id int, id integer primary key asc)")
-        self.cursor.execute("create table registry_files (filename text, registry_type int, md5sum text, mtime text, group_id int, id integer primary key asc)")        
+        self.cursor.execute("create table partitions (number int, offset int, evidence_file_id int, id integer primary key asc)")
+        self.cursor.execute("create table file_groups (group_name text, partition_id int, id integer primary key asc)")
+        self.cursor.execute("create table reg_type (type_name, file_group_id int, id integer primary key asc)"),
+        self.cursor.execute("create table rp_groups (rpname text, reg_type_id int, id integer primary key asc)"),
+        self.cursor.execute("create table registry_files (filename text, registry_type int, md5sum text, mtime text, reg_type_id int, hive_type int, id integer primary key asc)")        
     
         self.conn.commit()
     
@@ -135,35 +136,43 @@ class evidence_database:
 
             evidence_type = self.ehash[filename]
             md5, mtime, unused = self.fill_db_info("", filename, hashit)
-            alias         = self.gui_ref.gui.alias_hash[filename]
+            # get the alias from the gui
+            try:
+                alias         = self.gui_ref.gui.alias_hash[filename]
+            except:
+                alias = ""
 
+        # single files
         else:
             md5, mtime = (-1, -1)
-            alias     = self.gui_ref.gui.alias_hash[ehashfname]
+            try:
+                alias = self.gui_ref.gui.alias_hash[ehashfname]
+            except:
+                alias = ""
+
             evidence_type = self.ehash[ehashfname]
             if not alias or alias == "":
                 alias = filename    
 
             filename  = ehashfname
 
-
         self.cursor.execute("insert into evidence_sources (filename, file_alias, evidence_type, md5sum, mtime) values (?,?,?,?,?)", \
                     (filename, alias, evidence_type, md5, mtime))
 
         return self.cursor.execute("SELECT last_insert_rowid()").fetchone()[0]
 
-    def insert_file_group(self, group_name, evidence_id):
+    def insert_file_group(self, group_name, part_id):
 
-        self.cursor.execute("insert into file_groups (group_name, evidence_file_id) values (?,?)", (group_name, evidence_id))
+        self.cursor.execute("insert into file_groups (group_name, partition_id) values (?,?)", (group_name, part_id))
 
         return self.cursor.execute("SELECT last_insert_rowid()").fetchone()[0]
 
-    def insert_registry_file(self, filename, mtime, last_id, fullpath):
+    def insert_registry_file(self, filename, mtime, last_id, fullpath, reg_type=-1):
 
         md5, unused1, evidence_type = self.fill_db_info(filename, fullpath)
         
-        self.cursor.execute("insert into registry_files (filename, registry_type, md5sum, mtime, group_id) values (?,?,?,?,?)", \
-                    (filename, evidence_type, md5, mtime, last_id))
+        self.cursor.execute("insert into registry_files (filename, registry_type, md5sum, mtime, reg_type_id, hive_type) values (?,?,?,?,?,?)", \
+                    (filename, evidence_type, md5, mtime, last_id, reg_type))
         
         file_id = self.cursor.execute("SELECT last_insert_rowid()").fetchone()[0]
 
@@ -206,7 +215,12 @@ class evidence_database:
 
     def update_label(self, gui, string):
 
+        # make work from command line
+        if hasattr(gui, "gui"):
+            gui = gui.gui
+
         if not hasattr(gui,"progressLabel"):
+            print string
             return
  
         gui.progressLabel.setText(QString(string))
@@ -226,12 +240,77 @@ class evidence_database:
                 (filename, a, b) = line.split(",")
                 evidence_source_id = self.insert_evidence_source(filename)
 
-                self.update_label(self.gui_ref.gui, "Processing Single File %s" % filename)
+                self.update_label(self.gui_ref, "Processing Single File %s" % filename)
 
+                # TODO --
                 group_name = "SINGLE"
                 group_id   = self.insert_file_group(group_name, evidence_source_id)
 
                 self.write_single_file(case_dir, path, group_id, line)
+
+    def insert_files(self, orig_rid, rid, reg_type, basedir, cursor):
+
+        cursor.execute("select filename, mtime, file_id from registry_files where reg_type_id=? and file_type=?", [orig_rid, reg_type])
+        file_info = cursor.fetchall()
+
+        for (filename, mtime, file_id) in file_info:
+        
+            pickle_file = os.path.join(basedir, "%d" % file_id)
+            (etype, file_id) = self.insert_registry_file(filename, mtime, rid, pickle_file, reg_type)
+
+            self.add_file_to_tree(pickle_file, file_id, filename, self.img_filename)
+
+    # at this point we are processing groups and need to deal with reg_type / rp_groups per group
+    def insert_reg_type(self, orig_gid, gid, basedir, cursor): 
+
+        # reg_type first
+        # get the name of each reg_type
+        cursor.execute("select type_name,id from reg_type where file_group_id=?", [orig_gid])
+
+        for (type_name, orig_rid) in cursor.fetchall():
+
+            # insert the reg_type into the case database
+            self.cursor.execute("insert into reg_type (type_name, file_group_id) values (?, ?)", [type_name, gid])
+            reg_id = self.cursor.execute("SELECT last_insert_rowid()").fetchone()[0]
+
+            # 0 = !RP
+            self.insert_files(orig_rid, reg_id, 0, basedir, cursor) 
+
+    def insert_rp_groups(self, orig_gid, gid, basedir, cursor):
+
+        # reg_type first
+        # get the name of each reg_type
+        cursor.execute("select type_name,id from reg_type where file_group_id=?", [orig_gid])
+
+        for (type_name, orig_rid) in cursor.fetchall():
+
+            # insert the reg_type into the case database
+            self.cursor.execute("insert into reg_type (type_name, file_group_id) values (?, ?)", [type_name, gid])
+            reg_id = self.cursor.execute("SELECT last_insert_rowid()").fetchone()[0]
+
+            self.cursor.execute("insert into rp_groups (rpname, reg_type_id) values (?, ?)", [type_name, reg_id])
+            rp_id = self.cursor.execute("SELECT last_insert_rowid()").fetchone()[0]
+
+            # 1 = RP
+            self.insert_files(orig_rid, rp_id, 1, basedir, cursor) 
+
+    def insert_groups(self, groups, part_id, basedir, cursor):
+
+        # each group / partition id pair
+        for (group_name, orig_gid) in groups:
+
+            gid = self.insert_file_group(group_name, part_id)
+
+            # reg_type
+            self.insert_reg_type( orig_gid, gid, basedir, cursor)
+           
+            # rp_groups
+            self.insert_rp_groups(orig_gid, gid, basedir, cursor)
+        
+    def insert_partition(self, number, offset, evi_id):
+    
+        self.cursor.execute("insert into partitions (number, offset, evidence_file_id) values (?, ?, ?)", [number, offset, evi_id])
+        return self.cursor.execute("SELECT last_insert_rowid()").fetchone()[0]
 
     # this takes info from an acquire_files database and inserts them into a case tree/processing queue
     def handle_image_files(self, casedir, basedir, dbname="acquire_files.db", ehashfname=""):
@@ -242,34 +321,27 @@ class evidence_database:
         except:
             return
 
+        # the conn/cursor to read the source database, only selects are performed, no commit needed
         (conn, cursor) = common.connect_db(basedir, dbname)
         cursor.execute("select filename, id from evidence_sources")
         imgs = cursor.fetchall()
         
-        # image files
-        for (img_filename, orig_id) in imgs:
+        # each image file
+        for (self.img_filename, orig_id) in imgs:
 
-            evi_id = self.insert_evidence_source(img_filename, 0, ehashfname)
-        
-            cursor.execute("select group_name,id from file_groups where evidence_file_id=?", [orig_id])
-            groups = cursor.fetchall()
+            evi_id = self.insert_evidence_source(self.img_filename, 0, ehashfname)
+       
+            cursor.execute("select number, offset, id from partitions where evidence_file_id=?", [evi_id])
+            
+            # each partition in the image
+            for (number, offset, part_id) in cursor.fetchall():
+            
+                new_part_id = self.insert_partition(number, offset, evi_id)
 
-            # each group / evidence id pair
-            for (group_name, orig_gid) in groups:
+                cursor.execute("select group_name,id from file_groups where partition_id=?", [part_id])
+                groups = cursor.fetchall()
 
-                gid = self.insert_file_group(group_name, evi_id)
-        
-                cursor.execute("select filename, mtime, file_id from registry_files where group_id=?", [orig_gid])
-                file_info = cursor.fetchall()
-        
-                for (filename, mtime, file_id) in file_info:
-                
-                    pickle_file = os.path.join(basedir, "%d" % file_id)
-                    (etype, file_id) = self.insert_registry_file(filename, mtime, gid, pickle_file)
-
-                    self.add_file_to_tree(pickle_file, file_id, filename, img_filename)
-
-                    conn.commit()
+                self.insert_groups(groups, new_part_id, basedir, cursor)
 
     def handle_rdb_files(self, case_dir):
 
@@ -296,7 +368,11 @@ class evidence_database:
         self.case_obj = case_obj
         self.ehash    = ehash
         self.gui_ref  = gui_ref
-        self.gui      = gui_ref.gui
+        
+        if hasattr(gui_ref, "gui"):
+            self.gui  = gui_ref.gui
+        else:
+            self.gui  = None
 
         case_dir = gui_ref.directory
 
@@ -315,6 +391,3 @@ class evidence_database:
         self.conn.commit()
 
         self.handle_rdb_files(case_dir)
-        self.conn.commit()
-
-

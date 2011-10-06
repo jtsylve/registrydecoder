@@ -22,20 +22,24 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
 #
-import sys, os, struct, copy
+import sys, os, struct, copy, re
 
 import pytsk3
 import common
 
 from errorclasses import *
+from image_classes import * 
 
 class acquire_files:
 
-    def __init__(self, case_dir, gui):
+    def __init__(self, case_dir, gui_ref):
         self.regfile_ctr = 0
         self.img_ctr     = 0 
 
-        self.gui = gui
+        if hasattr(gui_ref, "gui"):
+            self.gui = gui_ref.gui
+        else:
+            self.gui = None
 
         self.store_dir = os.path.join(case_dir, "registryfiles")
 
@@ -58,8 +62,11 @@ class acquire_files:
         if not self.cursor.fetchall():
             
             tables = ["evidence_sources (filename text,   id integer primary key asc)",
-                      "file_groups      (group_name text, evidence_file_id int, id integer primary key asc)",
-                      "registry_files   (filename text,  mtime text, group_id int, file_id int, id integer primary key asc)",
+                      "partitions       (number int, offset int, evidence_file_id int, id integer primary key asc)",
+                      "file_groups      (group_name text, partition_id int, id integer primary key asc)",
+                      "reg_type         (type_name text, file_group_id int, id integer primary key asc)",
+                      "rp_groups        (rpname text, reg_type_id int, id integer primary key asc)",
+                      "registry_files   (filename text,  mtime text, reg_type_id int, file_id int, file_type int, id integer primary key asc)",
                      ]
     
             for table in tables:
@@ -67,23 +74,38 @@ class acquire_files:
                 
             self.conn.commit()
 
-    # enforces unique group_name and evidence_id pairs
-    def group_id(self, group_name):
-
-        ''' 
-        there has to be a better way to do this
-        but "insert or replace" changes the auto increment id
-        '''
+    def new_partition(self, number, offset):
 
         evi_id = self.evidence_id
 
-        self.cursor.execute("select id from file_groups where group_name=? and evidence_file_id=?", [group_name, evi_id])
+        self.cursor.execute("insert into partitions (number, offset, evidence_file_id) values (?, ?, ?)", [number, offset, evi_id])
+
+        return self.cursor.execute("SELECT last_insert_rowid()").fetchone()[0]
+
+    def new_group(self, group_name):
+
+        part_id = self.partition_id
+
+        self.cursor.execute("insert into file_groups (group_name, partition_id) values (?,?)", [group_name, part_id])
+
+        return self.cursor.execute("SELECT last_insert_rowid()").fetchone()[0]
+
+    def new_rp(self, rpname, rtype_id):
+
+        self.cursor.execute("insert into rp_groups (rpname, reg_type_id) values (?,?)", [rpname, rtype_id])
+
+        return self.cursor.execute("SELECT last_insert_rowid()").fetchone()[0]
+
+    # ex: "core", id of "Current"
+    def type_id(self, type_name, group_id):
+
+        self.cursor.execute("select id from reg_type where type_name=? and file_group_id=?", [type_name, group_id])
 
         res = self.cursor.fetchone()
         
         # group doesn't exist for evidence file
         if not res:
-            self.cursor.execute("insert into file_groups (group_name, evidence_file_id) values (?,?)", [group_name, evi_id])
+            self.cursor.execute("insert into reg_type (type_name, file_group_id) values (?,?)", [type_name, group_id])
             ret_id = self.cursor.execute("SELECT last_insert_rowid()").fetchone()[0]
         
         else:
@@ -91,17 +113,21 @@ class acquire_files:
 
         return ret_id
 
-    def insert_reg_file(self, group_name, file_name, mtime):
+    # type -- 
+    def insert_reg_file(self, type_name, tid, file_name, file_type, mtime):
 
-        gid = self.group_id(group_name)
+        # file_type
+        # 0 - regular file
+        # 1 - restore point file
+
         file_id = self.regfile_ctr
 
-        self.cursor.execute("insert into registry_files (filename, group_id, file_id, mtime) values (?,?,?,?)", [file_name, gid, file_id, mtime])
+        self.cursor.execute("insert into registry_files (filename, reg_type_id, file_id, file_type, mtime) values (?,?,?,?,?)", [file_name, tid, file_id, file_type, mtime])
 
         self.regfile_ctr = self.regfile_ctr + 1
 
     # based on pytsk3 documentation
-    # returns the file as a python strings
+    # returns the file as a python string
     def read_file(self, fd):
 
         data = ""
@@ -130,7 +156,6 @@ class acquire_files:
     tsk doesn't so we have to try to read the file as both lower and upper case
     if neither of those appear then we have to bail
     '''
-
     def open_hive(self, fs, directory, fname, raiseex=1):
             
         fpath = directory + "/" + fname.lower()
@@ -150,12 +175,12 @@ class acquire_files:
 
         return f
      
-    def grab_file(self, f, group_name, fname, realname=""):
+    def grab_file(self, f, type_name, fname, group_id, is_rp=0, realname=""):
 
         data = self.read_file(f)
  
         if data == "":
-            print "grab_file: unable to acquire file %s from %s" % (fname, group_name)
+            print "grab_file: unable to acquire file %s from %s" % (fname, type_name)
             return
 
         # copy file to acquire_store
@@ -170,11 +195,21 @@ class acquire_files:
 
         if realname:
             fname = realname
+        
+        # notes about this
+        # is_rp controls whether its a file from a sys RP
+        # group_id for non-rp is core/ntuser in the first level
+        # group_id is last level for rp files
 
         # put info into database
-        self.insert_reg_file(group_name, fname, mtime) 
+        if not is_rp:
+            tid = self.type_id(type_name, group_id)
+        else:
+            tid = group_id
+
+        self.insert_reg_file(type_name, tid, fname, is_rp, mtime)
     
-    def acquire_core_files(self, fs):
+    def acquire_core_files(self, fs, group_id):
        
         # files to get from core dir
         files = copy.deepcopy(common.hive_types)
@@ -203,14 +238,14 @@ class acquire_files:
                 if not f and fname == "DEFAULT":
                     continue
 
-                self.grab_file(f, "CORE", fname)
+                self.grab_file(f, "CORE", fname, group_id)
 
                 founddir = 1
                 
             if founddir:
                 return
                  
-    def acquire_user_files(self, fs):
+    def acquire_user_files(self, fs, group_id):
         
         user_dirs = ["Documents and Settings", "Users"]       
 
@@ -243,37 +278,51 @@ class acquire_files:
                         # open the user's directory
                         rname = ff.info.name.name
 
-                        self.grab_file(ff, "NTUSER", "NTUSER.dat", fname)
+                        self.grab_file(ff, "NTUSER", "NTUSER.dat", group_id, realname=fname)
 
     # get the active core & user registry files
     def acquire_active_files(self, fs):
 
+        # make "Current" file_group
+        group_id = self.new_group("Current")
+
         self.refreshgui()
-        self.acquire_core_files(fs)
+        self.acquire_core_files(fs, group_id)
         self.refreshgui()
-        self.acquire_user_files(fs)
+        self.acquire_user_files(fs, group_id)
         self.refreshgui()
 
     # grabs each registry file from an RP###/snapshot directory
-    def parse_rp_folder(self, fs, directory, group_name):
+    def parse_rp_folder(self, fs, directory, rpname, group_id):
 
         if directory.info.meta:
             # open file as a directory
             directory = fs.open_dir(inode=directory.info.meta.addr)
         else:
-            print "parse_rp_folder: unable to get %s" % group_name
+            print "parse_rp_folder: unable to get %s" % rpname
             return 
+
+        # puts the "RP###" folder under the _restore directory
+        rp_id = self.type_id(rpname, group_id)
+
+        core_id   = self.new_rp("CORE",   rp_id)
+        ntuser_id = self.new_rp("NTUSER", rp_id)
 
         # walk the snaphsot dir
         for f in directory:
             
             fname = f.info.name.name
 
-            if fname.startswith("_REGISTRY_"):
-                self.grab_file(f, group_name, fname)
+            if fname.startswith("_REGISTRY_MACHINE_"):
+                fname = fname[len("_REGISTRY_MACHINE_"):]
+                self.grab_file(f, rpname, fname, core_id, is_rp=1)
+    
+            elif fname.startswith("_REGISTRY_USER_"):
+                fname = fname[len("_REGISTRY_USER_"):]
+                self.grab_file(f, rpname, fname, ntuser_id, is_rp=1)
 
     # parse RP structure
-    def parse_system_restore(self, fs, directory):
+    def parse_system_restore(self, fs, directory, group_id):
 
         if directory.info.meta:
             # directory is sent in as a pytsk3.File
@@ -302,10 +351,11 @@ class acquire_files:
                     if name == "snapshot":
            
                         # grab the registry files
-                        self.parse_rp_folder(fs, f, fname)
+                        self.parse_rp_folder(fs, f, fname, group_id)
 
 
     def handle_sys_restore(self, fs):
+
 
         directory = fs.open_dir("System Volume Information")
 
@@ -315,12 +365,15 @@ class acquire_files:
             fname = f.info.name.name
 
             if fname.startswith("_restore{"):
-                self.parse_system_restore(fs, f)
+                group_id = self.new_group(fname)
+                self.parse_system_restore(fs, f, group_id)
 
     def handle_reg_back(self, fs):
 
         dirs  = ["Windows", "System32", "config", "RegBack"]
         files = ["DEFAULT", "SAM", "SECURITY", "SOFTWARE", "SYSTEM"]
+
+        group_id = -1
 
         # Only Vista/7/2k8 will have this
         try:
@@ -334,10 +387,14 @@ class acquire_files:
             if f.info.meta.size == 0:
                 continue
         
+            # if this is the first file we found
+            if group_id == -1:
+                 group_id = self.new_group("RegBack")
+
             fname = f.info.name.name
 
             if fname in files:
-                self.grab_file(f, "RegBack", fname)
+                self.grab_file(f, "CORE", fname, group_id)
         
     def acquire_backup_files(self, fs):
 
@@ -346,85 +403,113 @@ class acquire_files:
         self.refreshgui()
         self.handle_reg_back(fs)
 
-    # returns a list offsets for every parittion on the image
-    def parse_mbr(self, filepath):
-
-        parts = []
-
-        fd = open(filepath, "rb")
-
-        # seek to beginning of partition table
-        fd.seek(446, 0)
-
-        # read in table
-        table = fd.read(64)
-        
-        psize = 16
-
-        for offset in xrange(0, 64, psize):
-
-            part   = table[offset : offset+psize]
-            
-            lba = struct.unpack("<I", part[8:12])[0] & 0xffffffff
-
-            offset = lba * 512
-        
-            if offset:
-                parts.append(offset)
-
-        return parts
-
-    def is_mbr(self, filepath):
-
-        ret = False
-
-        fd = open(filepath, "rb")
-
-        fd.seek(446, 0)
-
-        status = fd.read(1)
-
-        if ord(status) in [0x00, 0x80]:
-           
-            fd.seek(510, 0)
-    
-            sig = fd.read(2)
-
-            if ord(sig[0]) == 0x55 and ord(sig[1]) == 0xAA:
-                ret = True
-
-        return ret
-
     def refreshgui(self):
 
+        if not self.gui:
+            return
+
         self.gui.update()
         self.gui.app.processEvents()
         self.gui.update()
         self.gui.app.processEvents()
         
+    def is_e01file(self, filepath):
+
+        base, ext = os.path.splitext(filepath)
+
+        return  re.search('^(.E\d{1,})$', ext)
+
+    def get_e01names(self, filepath):
+
+        dirname = os.path.dirname(filepath)
+
+        files = []
+
+        # only find files in the immediate directory
+        for root, dirs, filenames in os.walk(dirname):
+
+            for filename in filenames:
+
+                if self.is_e01file(filename):
+
+                    files.append(os.path.join(dirname, filename))
+
+
+        # so ugly that this is done in-place
+        files.sort()
+            
+        return files
+
+    def get_img_info(self, filepath):
+
+        # encase
+        if self.is_e01file(filepath):
+           
+            # we need to grab all the files of type this
+            files = self.get_e01names(filepath)
+            
+            try:
+                img = EWFImgInfo(*files)
+            except Exception, e:
+                # TODO
+                print "BUG: Unable to open EWF file: %s | %s" % (filepath, str(e))
+
+            print "e01 image -> %s" % filepath
+
+        else:
+            img = pytsk3.Img_Info(filepath)
+            print "normal dd -> %s" % filepath
+
+        return img
+
+    def get_offsets(self, img):
+
+        offsets = []
+
+        # if its a disk image, this will get the offset of all the partitions
+        # if its a partition imge (e.g. /dev/sda1), it will return [0] since it starts at beginning
+        try:
+            # volume info (partitions) 
+            volinfo = pytsk3.Volume_Info(img)
+        except:
+            volinfo = []
+            offsets = [0]
+
+        block_size = volinfo.info.block_size
+
+        # this our attempt to keep track of the partition number as would be shown with 'fdisk -l'
+        # sleuthkit uses a different schema where 'meta' entries become partitions
+        part_num = 0
+
+        for part in volinfo:
+
+            start = part.start * block_size
+
+            if part.flags == 1: # allocated, not meta
+                offsets.append((part_num, start))
+   
+            if part.flags in (1,2): # TSK_VS_PART_FLAG_ALLOC or TSK_VS_PART_FLAG_UNALLOC 
+                part_num = part_num + 1
+             
+        return offsets
+
     # gather all the files from the system
     # auto detect OS of image
     def acquire_files(self, filepath, current, backup):
 
-        # IMG_INFO
-        try:
-            img = pytsk3.Img_Info(filepath)
-        except Exception, e:
-            print "IMG_Info: unable to open image %s error %s" % (filepath, str(e))
-            return
-
-        if self.is_mbr(filepath):
-            offsets = self.parse_mbr(filepath)
-
-        else: # partition image
-            offsets = [0]
-
+        # get the image type (raw, encase, split)
+        img = self.get_img_info(filepath)        
+      
+        offsets = self.get_offsets(img)
+ 
         # this needs to be expanded if we support dual boot disk images
         # insert the file and the kept the id around
         self.cursor.execute("insert into evidence_sources (filename) values (?)", [filepath])
         self.evidence_id = self.cursor.execute("SELECT last_insert_rowid()").fetchone()[0] 
 
-        for offset in offsets:
+        for (part_num, offset) in offsets:
+
+            self.partition_id = self.new_partition(part_num, offset)
 
             # FS_INFO
             try:

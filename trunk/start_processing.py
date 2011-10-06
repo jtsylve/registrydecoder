@@ -121,7 +121,7 @@ class case_processing:
     
     def perform_processing(self, gui_ref):
 
-        self.evidence_db.update_label(gui_ref.gui, "Starting Processing")
+        self.evidence_db.update_label(gui_ref, "Starting Processing")
 
         case_obj = self.setup_case_obj(gui_ref.directory)
 
@@ -134,7 +134,7 @@ class case_processing:
         # grab each peice of evidence given and process it based on type
         for evidence_file in gui_ref.evidence_list:        
         
-            self.evidence_db.update_label(gui_ref.gui, "Processing File %d of %d" % (i+1, numfiles))
+            self.evidence_db.update_label(gui_ref, "Processing File %d of %d" % (i+1, numfiles))
             
             # grab all the registry files from each file or the registry file itself
             etype = self.acquire_files.acquire_from_file(evidence_file, gui_ref)
@@ -164,14 +164,14 @@ class case_processing:
         # write out evidence information to evidence_database.db
         self.evidence_db.write_evidence_database(gui_ref, ehash, case_obj)
         
-        self.evidence_db.update_label(gui_ref.gui, "Saving Information")
+        self.evidence_db.update_label(gui_ref, "Saving Information")
 
         self.insert_tree_nodes(case_obj)
 
         # delete lists and such that aren't needed anymore
         case_obj.tree.before_pickle()
         
-        self.evidence_db.update_label(gui_ref.gui, "Final Processing")
+        self.evidence_db.update_label(gui_ref, "Final Processing")
 
         pickle_name = os.path.join(case_obj.case_directory,"caseobj.pickle")
         writefd = open(pickle_name,"wb")    
@@ -200,24 +200,14 @@ def main():
     g = blah()
     g.acquire_current = 1
     g.acquire_backups = 1
-    g.directory       = "/tmp/3/"
+    g.directory       = "/mnt/big/5/"
     #g.evidence_list   = ["/media/ba42b2b8-ad4d-4ee2-b5de-0c8119467859/win7.dd"]
-    g.evidence_list = ["/media/ba42b2b8-ad4d-4ee2-b5de-0c8119467859/XP.dd"]
+    g.evidence_list = ["/mnt/big/XP.dd"]
 
     case_processing().perform_processing(g)
-
-    '''
-    tutil = tutilclass.templateutil(obj)
-    
-    # tree, path, name, value, [-1]
-    
-    # this one works
-    print tutil.path_key_val_exists(obj.ktree, ["Classes",".323"], "Content Type", "text/h32", [-1])
-
-    # this one should return false
-    print tutil.path_key_val_exists(obj.ktree, ["Classes",".323"], "CCCCCCCCCContent Type", "text/h32", [-1])
-    '''
-    
+   
+    print "done!"
+ 
 if __name__ == "__main__":
 
     if profile:
