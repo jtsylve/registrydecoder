@@ -22,7 +22,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
 #
-#controls the plugin case analysis tab
+# controls the plugin case analysis tab
 
 import sys, copy
 
@@ -159,7 +159,7 @@ class plugintab:
 
         self.gui.case_obj.current_fileid = fileid
 
-        (filepath, evi_file, group_name) = self.gcommon.get_file_info(self.fileinfo_hash[fileid])
+        (filepath, evi_file, group_name) = self.gcommon.get_file_info(self.fileinfo_hash, fileid)
 
         finfo = self.fileinfo_hash[fileid]
 

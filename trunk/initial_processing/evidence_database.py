@@ -227,8 +227,6 @@ class evidence_database:
 
         gui.update()
         gui.app.processEvents()
-        gui.update()
-        gui.app.processEvents()
         
     # for single files added
     def write_single_to_db(self, case_dir, path):
@@ -266,8 +264,9 @@ class evidence_database:
         # reg_type first
         # get the name of each reg_type
         cursor.execute("select type_name,id from reg_type where file_group_id=?", [orig_gid])
+        process = cursor.fetchall()
 
-        for (type_name, orig_rid) in cursor.fetchall():
+        for (type_name, orig_rid) in process:
 
             # insert the reg_type into the case database
             self.cursor.execute("insert into reg_type (type_name, file_group_id) values (?, ?)", [type_name, gid])
@@ -276,24 +275,17 @@ class evidence_database:
             # 0 = !RP
             self.insert_files(orig_rid, reg_id, 0, basedir, cursor) 
 
-    def insert_rp_groups(self, orig_gid, gid, basedir, cursor):
+            cursor.execute("select rpname, id from rp_groups where reg_type_id=?", [orig_rid])
+            rps = cursor.fetchall()
 
-        # reg_type first
-        # get the name of each reg_type
-        cursor.execute("select type_name,id from reg_type where file_group_id=?", [orig_gid])
+            for (rpname, orig_rp_id) in rps:
+            
+                self.cursor.execute("insert into rp_groups (rpname, reg_type_id) values (?, ?)", [rpname, reg_id])
+                rp_id = self.cursor.execute("SELECT last_insert_rowid()").fetchone()[0]
 
-        for (type_name, orig_rid) in cursor.fetchall():
-
-            # insert the reg_type into the case database
-            self.cursor.execute("insert into reg_type (type_name, file_group_id) values (?, ?)", [type_name, gid])
-            reg_id = self.cursor.execute("SELECT last_insert_rowid()").fetchone()[0]
-
-            self.cursor.execute("insert into rp_groups (rpname, reg_type_id) values (?, ?)", [type_name, reg_id])
-            rp_id = self.cursor.execute("SELECT last_insert_rowid()").fetchone()[0]
-
-            # 1 = RP
-            self.insert_files(orig_rid, rp_id, 1, basedir, cursor) 
-
+                # 1 = RP
+                self.insert_files(orig_rp_id, rp_id, 1, basedir, cursor) 
+       
     def insert_groups(self, groups, part_id, basedir, cursor):
 
         # each group / partition id pair
@@ -305,7 +297,7 @@ class evidence_database:
             self.insert_reg_type( orig_gid, gid, basedir, cursor)
            
             # rp_groups
-            self.insert_rp_groups(orig_gid, gid, basedir, cursor)
+            # self.insert_rp_groups(orig_gid, gid, basedir, cursor)
         
     def insert_partition(self, number, offset, evi_id):
     
@@ -331,10 +323,11 @@ class evidence_database:
 
             evi_id = self.insert_evidence_source(self.img_filename, 0, ehashfname)
        
-            cursor.execute("select number, offset, id from partitions where evidence_file_id=?", [evi_id])
-            
+            cursor.execute("select number, offset, id from partitions where evidence_file_id=?", [orig_id])
+            parts = cursor.fetchall()            
+
             # each partition in the image
-            for (number, offset, part_id) in cursor.fetchall():
+            for (number, offset, part_id) in parts:
             
                 new_part_id = self.insert_partition(number, offset, evi_id)
 
@@ -391,3 +384,5 @@ class evidence_database:
         self.conn.commit()
 
         self.handle_rdb_files(case_dir)
+        self.conn.commit()
+

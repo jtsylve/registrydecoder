@@ -27,7 +27,7 @@ from errorclasses import *
 from guicontroller import *
 import registry_sig
 import acquirefiles.acquire_files as aqfile
-import shutil, sys, re
+import shutil, sys, re, os
 
 import pytsk3
 import ewf
@@ -41,12 +41,18 @@ class acquire_files:
     def add_single_file(self, evidence_file, evidence_type, gui_ref):
 
         # write the info.txt information
-        directory = os.path.join(gui_ref.directory, "registryfiles", "singlefiles", "")
+        directory = os.path.join(gui_ref.directory, "registryfiles", "singlefiles")
+        try:
+            os.makedirs(directory)
+        except:
+            pass
+
         filename = os.path.join(directory,"info.txt")
         fd = open(filename,"a",0750)
 
         mtime = int(os.path.getmtime(filename))
     
+        # TODO BUG --- comma in filename
         fd.write("%s,%d,%d\n" % (evidence_file, mtime, self.singlefilecounter))
 
         fd.close()

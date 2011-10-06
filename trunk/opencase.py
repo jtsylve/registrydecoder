@@ -89,7 +89,8 @@ class opencase:
         self.tree    = obj.tree
         self.tree.db = self.treenodedb 
 
-        self.fill_fileid_hash()
+        # TODO FIXME BROKE
+        #self.fill_fileid_hash()
         obj.stringtable.precache_values()
 
 fid = [2]

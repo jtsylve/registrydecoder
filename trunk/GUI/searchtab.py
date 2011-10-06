@@ -188,7 +188,7 @@ class searchtab:
     # runs the given search term(s) on file id
     def run_search(self, fileid, sp):
     
-        (filepath, evi_file, group_name) = self.gcommon.get_file_info(self.fileinfo_hash[fileid])
+        (filepath, evi_file, group_name) = self.gcommon.get_file_info(self.fileinfo_hash, fileid)
 
         self.gui.case_obj.current_fileid = fileid
 

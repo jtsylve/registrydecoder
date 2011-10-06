@@ -150,11 +150,12 @@ class case_processing:
             else:
                 etype = etype[0]
                 ehash[evidence_file] = etype
-            
+    
             i = i + 1
-        
+
         # remove files that could not be processed
         gui_ref.evidence_list = [item for idx,item in enumerate(gui_ref.evidence_list) if idx not in skip_indexes]
+
 
         # check if any valid files were added
         if len(gui_ref.evidence_list) == 0:
@@ -200,9 +201,10 @@ def main():
     g = blah()
     g.acquire_current = 1
     g.acquire_backups = 1
-    g.directory       = "/mnt/big/5/"
+    g.directory       = "/mnt/big/single/"
     #g.evidence_list   = ["/media/ba42b2b8-ad4d-4ee2-b5de-0c8119467859/win7.dd"]
-    g.evidence_list = ["/mnt/big/XP.dd"]
+    #g.evidence_list = ["/mnt/big/XP.dd"]
+    g.evidence_list = ["/home/x/SYSTEM"]
 
     case_processing().perform_processing(g)
    
