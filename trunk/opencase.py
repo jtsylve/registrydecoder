@@ -109,7 +109,7 @@ class opencase:
 
             for (efileid, rtype, md5sum, mtime) in cursor.fetchall():
 
-                self.fileid_hash[efileid] = fileinfo(evidence_file, file_alias, -1, "SINGLE", "SINGLE_TYPE", evidence_file)
+                self.fileid_hash[efileid] = fileinfo(evidence_file, alias, -1, "SINGLE", "SINGLE_TYPE", evidence_file)
 
     def opencaseobj(self):
         filename = os.path.join(self.directory,"caseobj.pickle")

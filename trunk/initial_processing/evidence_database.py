@@ -182,7 +182,7 @@ class evidence_database:
     # also handles pickling the file
     def write_single_file(self, case_dir, path, group_id, line):
 
-        (reg_filename, mtime, original_pickle_id) = line.split(",")
+        (reg_filename, mtime, original_pickle_id) = line.split("\t")
 
         original_pickle_id = original_pickle_id.strip("\r\n")
             
@@ -235,7 +235,7 @@ class evidence_database:
         if lines:
             for line in lines:
         
-                (filename, a, b) = line.split(",")
+                (filename, a, b) = line.split("\t")
                 evidence_source_id = self.insert_evidence_source(filename)
 
                 self.update_label(self.gui_ref, "Processing Single File %s" % filename)
