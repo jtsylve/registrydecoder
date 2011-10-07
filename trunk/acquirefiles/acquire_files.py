@@ -338,20 +338,18 @@ class acquire_files:
 
             if fname.startswith("RP"):
 
-                if subdir.info.meta: 
+                # only process still allocated restore points
+                if subdir.info.meta and subdir.info.meta.flags == 1: 
                     subdir = fs.open_dir(inode=subdir.info.meta.addr)
-                else:
-                    print "parse_system_restore: Unable to get addr for %s" % fname
-                    return                    
 
-                for f in subdir:
+                    for f in subdir:
 
-                    name = f.info.name.name
+                        name = f.info.name.name
 
-                    if name == "snapshot":
-           
-                        # grab the registry files
-                        self.parse_rp_folder(fs, f, fname, group_id)
+                        if name == "snapshot":
+               
+                            # grab the registry files
+                            self.parse_rp_folder(fs, f, fname, group_id)
 
 
     def handle_sys_restore(self, fs):
