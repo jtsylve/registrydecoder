@@ -396,7 +396,6 @@ class filetab:
 
         self.act_handler.setup_menu()        
 
-    # path must have leading \
     def get_path_popup(self):
 
         ret = None
@@ -404,6 +403,16 @@ class filetab:
         (path, ok) = QInputDialog.getText(self.gui, "Please Enter the Registry Path", "Path:")
  
         if ok and not path.isEmpty():
+            # try to help out the user 
+            
+            # if they didn't give leading \, add it
+            if path[0] != "\\":
+                path = "\\" + path
+
+            # if they gave a trailing \, strip it
+            if path[-1] == "\\":
+                path = path[:-1]
+
             ret = unicode(self.tapi.get_path(path))
 
         return ret
@@ -414,7 +423,7 @@ class filetab:
 
         if not path:
             return None
-
+        
         nodes = self.tapi.root_path_node(path)     
 
         if nodes:
@@ -434,7 +443,7 @@ class filetab:
                 return
 
         for fileid in fileids:
-            filepath = self.fileinfo_hash[fileid].reg_file
+            filepath = self.gcommon.get_file_info(self.fileinfo_hash, fileid)[0]
 
             tab = self.gf.generate_file_view_form(self, fileid, self.gui, filepath)
             self.setup_menu(tab.viewTree)
