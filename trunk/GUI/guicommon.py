@@ -66,7 +66,7 @@ class tree_entry:
 
 class rfileinfo:
 
-    def __init__(self, evidence_file, alias, reg_file, reg_type, hashvalue, mtime):
+    def __init__(self, evidence_file, alias, reg_file, reg_type, hashvalue, mtime, group_name, part_num, type_name, rpname=""):
 
         self.evidence_file = evidence_file
         self.alias         = alias
@@ -74,6 +74,10 @@ class rfileinfo:
         self.reg_type      = reg_type
         self.hashvalue     = hashvalue
         self.mtime         = mtime
+        self.group_name    = group_name
+        self.part_num      = part_num
+        self.type_name     = type_name
+        self.rp_name       = rpname
 
 def get_ename(efile, alias):
 
@@ -161,7 +165,7 @@ def handle_single(gui, fileinfo_hash, root):
             efile.fileids.append(efileid)            
             root.fileids.append(efileid)
 
-            fileinfo_hash[efileid] = rfileinfo(evidence_file, ename, evidence_file, rtype, md5sum, mtime) 
+            fileinfo_hash[efileid] = rfileinfo(evidence_file, ename, evidence_file, rtype, md5sum, mtime, "SINGLE", -1, "SINGLE_TYPE") 
 
     return (fileinfo_hash, root)
 
@@ -234,18 +238,18 @@ def handle_images(gui):
 
                             cursor.execute("select filename, id, registry_type, md5sum, mtime from registry_files where reg_type_id=? and hive_type=1", [rp_id])
 
-                            populate_file(evidence_file, ename, fileinfo_hash, cursor, rent, tree_ents + [rent])
+                            populate_file(evidence_file, ename, fileinfo_hash, cursor, rent, tree_ents + [rent], group_name, part_num, type_name, rpname)
 
                     # non-RP
                     else:
                         # get all the files from a group
                         cursor.execute("select filename, id, registry_type, md5sum, mtime from registry_files where reg_type_id=? and hive_type=0", [type_id])
 
-                        populate_file(evidence_file, ename, fileinfo_hash, cursor, tent, tree_ents)
+                        populate_file(evidence_file, ename, fileinfo_hash, cursor, tent, tree_ents, group_name, part_num, type_name)
 
     return (fileinfo_hash, root)
 
-def populate_file(evidence_file, ename, fileinfo_hash, cursor, ent, tree_ents):
+def populate_file(evidence_file, ename, fileinfo_hash, cursor, ent, tree_ents, group_name, part_num, type_name, rpname=""):
  
     regfiles = cursor.fetchall()
 
@@ -254,8 +258,7 @@ def populate_file(evidence_file, ename, fileinfo_hash, cursor, ent, tree_ents):
         fent = tree_entry(rfile)
         ent.subs.append(fent)
 
-        # TODO FIXME BROKE
-        fileinfo_hash[fileid] = rfileinfo(evidence_file, ename, rfile, rtype, md5sum, mtime) 
+        fileinfo_hash[fileid] = rfileinfo(evidence_file, ename, rfile, rtype, md5sum, mtime, group_name, part_num, type_name, rpname) 
 
         for ent in tree_ents:
             ent.fileids.append(fileid)
@@ -336,14 +339,19 @@ def get_file_info(fhash, fileid):
     filepath   = finfo.reg_file
     alias      = finfo.alias
     evi_file   = finfo.evidence_file
-   
-    group_name = "group"
- 
-    if evi_file.find("acquire_files.db") != -1:
-        filepath = "%s in %s from %s" % (filepath, group_name, evi_file)
+    group_name = finfo.group_name
+    part_num   = finfo.part_num
+    type_name  = finfo.type_name
+    rpname     = finfo.rp_name    
 
-    elif group_name != "SINGLE":
-        filepath = "%s from %s" % (filepath, evi_file)
+    if group_name != "SINGLE":
+
+        group_info = "Partition %s | %s | %s" % (part_num, group_name, type_name) 
+       
+        if rpname:
+            group_info = group_info + " | " + rpname
+
+        filepath = "%s in %s from %s" % (filepath, group_info, evi_file)
 
     # if an alias was given
     if len(alias) and evi_file != alias:

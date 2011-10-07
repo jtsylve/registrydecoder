@@ -45,11 +45,16 @@ def get_hinfo_list(hinfo, case_obj):
 
     hf = case_obj.fileid_hash[hinfo.fileid]
 
-    (evi_file, alias, group_name, reg_file) = (hf.evidence_file, hf.file_alias, hf.group_name, hf.registry_file)
+    (evi_file, alias, part_num, group_name, type_name, reg_file, rpname) = (hf.evidence_file, hf.file_alias, hf.part_num, hf.group_name, hf.type_name, hf.registry_file, hf.rpname)
+
+    group_info = "Partition %s | %s | %s" % (part_num, group_name, type_name)
+    
+    if rpname:
+        group_info = group_info + " | " + rpname
 
     ret = [(hl[0], evi_file),
            (hl[1], alias),
-           (hl[2], group_name),
+           (hl[2], group_info),
            (hl[3], reg_file),
            (hl[4], hinfo.analysis_type),
            (hl[5], hinfo.term)]
@@ -329,6 +334,7 @@ class report_manager:
         
         (casename, casenum, iname, comments) = db.cursor.fetchone()
 
+        # TODO -- report time
         return [("Case Name", casename), ("Case Number", casenum), ("Investigator Name", iname), ("Comments", comments)]
 
 
