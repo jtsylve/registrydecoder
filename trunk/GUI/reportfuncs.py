@@ -125,7 +125,8 @@ class report_handler:
         if repinst:
             repinst.close_report()
          
- 
+        self.gui.msgBox("Report Successfully Created") 
+
     # clicked from indiviual plugin output forms 
     def createReportClicked(self, context):
 
@@ -134,7 +135,5 @@ class report_handler:
         #if currentTab in self.active_tabs:
         self.export_report(currentTab, currentTab, 1)
 
-        #else:
-        #    raise RDError("BUG: create report clicked from %s on non-active tab!" % context)
- 
+        self.gui.msgBox("Report Successfully Created") 
 

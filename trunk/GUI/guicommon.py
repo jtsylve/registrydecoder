@@ -54,6 +54,20 @@ class RDMessageBox(QWidget):
     def closeEvent(self, event):
         pass
 
+class RDMessageBoxInfo(QWidget):
+
+    def __init__(self, app, msg, parent=None):
+        QWidget.__init__(self, parent)
+
+        self.app = app
+
+        self.setGeometry(300, 300, 250, 150)
+        QMessageBox.information(self, 'Registry Decoder', msg)
+ 
+    def closeEvent(self, event):
+        pass
+
+
 
 # tree displayed of registry files to be analyzed
 class tree_entry:

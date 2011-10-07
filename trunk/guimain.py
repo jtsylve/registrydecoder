@@ -447,9 +447,13 @@ class registryDecoderGUI(QMainWindow, Ui_registrydecoder):
         index = self.analysisTabWidget.currentIndex()
         self.handleAnalysisTabClose(index)
         
-    def msgBox(self, message):
+    def msgBox(self, message, warn=1):
 
-        qb = gcommon.RDMessageBox(self.app, message)
+        if warn:
+            qb = gcommon.RDMessageBox(self.app, message)
+        else:
+            qb = gcommon.RDMessageBoxInfo(self.app, message)
+
         qb.show()
 
 def do_main():
