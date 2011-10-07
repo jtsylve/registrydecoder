@@ -57,15 +57,6 @@ class treeEnt:
         self.row    = row
         self.column = column
 
-class hexval:
-
-    def __init__(self, name, rtype, val, raw):
-
-        self.name  = name
-        self.rtype = rtype
-        self.val   = val
-        self.raw   = raw
-
 # implements the hive tree view
 class hiveTreeModel(QAbstractItemModel):
 
@@ -82,9 +73,6 @@ class hiveTreeModel(QAbstractItemModel):
         self.nodehash = {}
         self.ents = {}
         self.idxs = {}
-
-        # used to track for the hexdump
-        self.vals = {}
 
         self.filepath = filepath
     
@@ -263,8 +251,13 @@ class hiveTreeModel(QAbstractItemModel):
 
         self.place_last_written(node)
 
+        self.filetab.valueTable.clear()
+
         # clear the hex dump table on each click, will get refilled with list_values
         self.filetab.hexDump.clear()
+
+        # reset the values for the key
+        self.vals = {}
 
         self.list_values(node)
     
@@ -279,9 +272,13 @@ class hiveTreeModel(QAbstractItemModel):
         self.filetab.currentPath.insert(path + " -- " + lastwrite)
 
     def list_values(self, node):
+        
+        # this is a hack b/c sorted completely broke the table when jumping betweeen values
+        # it seemed to be b/c QT would remember the sort between keys and try to sort as items were insereted
+        self.filetab.valueTable.setSortingEnabled(False)
 
         row = 0
-        
+       
         vals = self.tapi.values_for_node(node)
         
         self.filetab.valueTable.setRowCount(len(vals))
@@ -290,7 +287,7 @@ class hiveTreeModel(QAbstractItemModel):
            
             name  = self.tapi.stringid(nodeval.namesid)
             val   = self.tapi.stringid(nodeval.asciisid)
-            raw   = self.tapi.stringid(nodeval.rawsid)  #self.tapi.reg_get_raw_value_data(nodeval)#self.tapi.stringid(nodeval.rawsid)
+            raw   = self.tapi.stringid(nodeval.rawsid) 
 
             # BUG --- not sure how values are falling outside the hash table of types
             ri    = int(nodeval.regtype)
@@ -307,7 +304,7 @@ class hiveTreeModel(QAbstractItemModel):
             nvals = [name, rtype, val]
             col  = 0
 
-            self.vals[row] = hexval(name, rtype, val, raw) 
+            self.vals[name] = raw
 
             # write them into the table
             for v in nvals: 
@@ -318,15 +315,19 @@ class hiveTreeModel(QAbstractItemModel):
             row = row + 1
         
         self.filetab.valueTable.resizeColumnsToContents()
+        self.filetab.valueTable.setSortingEnabled(True)
 
     # when a value entry is clicked
     def val_clicked(self, row, column): 
 
-        if row in self.vals:
+        self.filetab.hexDump.clear()
         
-            self.filetab.hexDump.clear()
-            vals = self.vals[row]
-            self.hexdump(vals.raw)
+        # always get the name as self.vals is keyed on it
+        name = unicode(self.filetab.valueTable.item(row, 0).text())
+
+        raw = self.vals[name]
+
+        self.hexdump(raw)
 
     def add_val(self, string, row, col):
 

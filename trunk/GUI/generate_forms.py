@@ -283,6 +283,8 @@ class generate_forms:
         ViewDataTableWidget.horizontalHeaderItem(1).setText(QString("Type"))
         ViewDataTableWidget.horizontalHeaderItem(2).setText(QString("Data"))
         ViewDataTableWidget.setEditTriggers(QAbstractItemView.NoEditTriggers);
+        ViewDataTableWidget.setSortingEnabled(True)
+
 
         fileViewLayout.addWidget(ViewDataTableWidget, 0, 1, 1, 1)
        
