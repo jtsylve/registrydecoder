@@ -111,7 +111,7 @@ class caseInformation:
         self.scasenumber   = unicode(self.gui.casenumber.text())
         self.sinvestigator = unicode(self.gui.investigatorname.text())
         self.scomments     = unicode(self.gui.comments.text())
-        self.directory     =  unicode(self.gui.caseDirectoryInput.text())
+        self.directory     = unicode(self.gui.caseDirectoryInput.text())
         self.directory     = self.directory.strip("\r\n\t")
             
         if pass_check or self.check_directory():

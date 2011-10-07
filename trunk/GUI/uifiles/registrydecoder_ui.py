@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'GUI/uifiles/registrydecoder.ui'
 #
-# Created: Mon Sep  5 23:49:45 2011
+# Created: Fri Oct  7 13:42:05 2011
 #      by: PyQt4 UI code generator 4.7.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -462,8 +462,11 @@ class Ui_registrydecoder(object):
         self.actionBackup_Case.setObjectName("actionBackup_Case")
         self.actionExport_Plugins_and_Searches = QtGui.QAction(registrydecoder)
         self.actionExport_Plugins_and_Searches.setObjectName("actionExport_Plugins_and_Searches")
+        self.actionClose_Case_2 = QtGui.QAction(registrydecoder)
+        self.actionClose_Case_2.setObjectName("actionClose_Case_2")
         self.toolBar_1.addSeparator()
         self.FileMenu.addAction(self.actionBackup_Case)
+        self.FileMenu.addAction(self.actionClose_Case_2)
         self.FileMenu.addAction(self.actionExit)
         self.menuActions.addAction(self.actionExport_Plugins)
         self.menuActions.addAction(self.actionExport_Searches)
@@ -543,4 +546,5 @@ class Ui_registrydecoder(object):
         self.actionExport_Searches.setText(QtGui.QApplication.translate("registrydecoder", "Export Searches", None, QtGui.QApplication.UnicodeUTF8))
         self.actionBackup_Case.setText(QtGui.QApplication.translate("registrydecoder", "Backup Case", None, QtGui.QApplication.UnicodeUTF8))
         self.actionExport_Plugins_and_Searches.setText(QtGui.QApplication.translate("registrydecoder", "Export Plugins and Searches", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionClose_Case_2.setText(QtGui.QApplication.translate("registrydecoder", "Close Case", None, QtGui.QApplication.UnicodeUTF8))
 

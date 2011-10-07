@@ -134,22 +134,6 @@ class opencase:
         self.fill_fileid_hash()
         obj.stringtable.precache_values()
 
-fid = [2]
-
-def print_children(o, node):
-
-    children = o.tree.walk_children(node, fid, 1)
-
-    nname = o.case_obj.stringtable.idxtostr(node.sid)
-
-    print "nodes for %s" % nname
-
-    for c in children:
-        for child in children[c]:
-            name = o.case_obj.stringtable.idxtostr(child.sid)
-            print "\t%s" % name
-    
-
 def main():
 
     case_dir = sys.argv[1]

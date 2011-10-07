@@ -1146,6 +1146,7 @@
      <string>File</string>
     </property>
     <addaction name="actionBackup_Case"/>
+    <addaction name="actionClose_Case_2"/>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuActions">
@@ -1202,6 +1203,11 @@
   <action name="actionExport_Plugins_and_Searches">
    <property name="text">
     <string>Export Plugins and Searches</string>
+   </property>
+  </action>
+  <action name="actionClose_Case_2">
+   <property name="text">
+    <string>Close Case</string>
    </property>
   </action>
  </widget>

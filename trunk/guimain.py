@@ -200,6 +200,17 @@ class file_menu:
         
         self.gui.connect( self.gui.actionBackup_Case, SIGNAL("triggered(bool)"), self.backupCaseClicked )
         self.gui.connect( self.gui.actionExit, SIGNAL("triggered(bool)"), self.gui.app, SLOT('quit()') )
+        self.gui.connect( self.gui.actionClose_Case_2, SIGNAL("triggered(bool)"), self.closeCaseClicked )
+
+    def closeCaseClicked(self):
+
+        attrs = ["case_obj", "directory", "alias_hash", "created_dir", "acquire_current", "acquire_backups"]
+       
+        for attr in attrs:
+            if hasattr(self.gui, attr):
+                delattr(self.gui, attr)
+
+        self.gui.stackedWidget.setCurrentIndex(gcommon.START_PAGE)
 
     def backupCaseClicked(self):
 
@@ -327,6 +338,13 @@ class registryDecoderGUI(QMainWindow, Ui_registrydecoder):
 
         return ret
 
+    def clearTrees(self):
+
+        trees = [self.fileTreeWidget, self.searchTreeWidget, self.searchDiffTreeWidget, self.pluginFilestreeWidget, self.pluginDiffTreeWidget]
+       
+        for tree in trees:
+            tree.clear() 
+
     # called when pages change
     def checkStackChange(self, index):
 
@@ -336,6 +354,7 @@ class registryDecoderGUI(QMainWindow, Ui_registrydecoder):
         elif index == gcommon.CASE_WINDOW:
 
             # stuff to get case analysis rolling..
+            self.clearTrees()
 
             # When the tab swtiches after case creation
             if not hasattr(self, "case_obj"):
@@ -343,7 +362,7 @@ class registryDecoderGUI(QMainWindow, Ui_registrydecoder):
 
             # Add the tempalte api to each
             for tab in self.analysis_tabs:
-                
+
                 tab.tapi = tutil.templateutil(self.case_obj) 
                 tab.tm   = tmmod.TemplateManager()
                 tab.rm   = rpmod.report_manager(self)
