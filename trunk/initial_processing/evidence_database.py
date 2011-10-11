@@ -81,14 +81,17 @@ class evidence_database:
 
         self.conn   = sqlite3.connect(dbname)
         self.cursor = self.conn.cursor()
-        
-        self.cursor.execute("create table evidence_sources (filename text, file_alias text, evidence_type int, md5sum text, mtime int, id integer primary key asc)")
-        self.cursor.execute("create table partitions (number int, offset int, evidence_file_id int, id integer primary key asc)")
-        self.cursor.execute("create table file_groups (group_name text, partition_id int, id integer primary key asc)")
-        self.cursor.execute("create table reg_type (type_name, file_group_id int, id integer primary key asc)"),
-        self.cursor.execute("create table rp_groups (rpname text, reg_type_id int, id integer primary key asc)"),
-        self.cursor.execute("create table registry_files (filename text, registry_type int, md5sum text, mtime text, reg_type_id int, hive_type int, id integer primary key asc)")        
-    
+       
+        try: 
+            self.cursor.execute("create table evidence_sources (filename text, file_alias text, evidence_type int, md5sum text, mtime int, id integer primary key asc)")
+            self.cursor.execute("create table partitions (number int, offset int, evidence_file_id int, id integer primary key asc)")
+            self.cursor.execute("create table file_groups (group_name text, partition_id int, id integer primary key asc)")
+            self.cursor.execute("create table reg_type (type_name, file_group_id int, id integer primary key asc)"),
+            self.cursor.execute("create table rp_groups (rpname text, reg_type_id int, id integer primary key asc)"),
+            self.cursor.execute("create table registry_files (filename text, registry_type int, md5sum text, mtime text, reg_type_id int, hive_type int, id integer primary key asc)")        
+        except:
+            pass
+ 
         self.conn.commit()
     
     # try to guess the type based on the file - last resort
@@ -340,7 +343,7 @@ class evidence_database:
 
         # test if any rdb files were added    
         try:
-            fd = open(os.path.join(case_dir, "rdb-files.txt"), "r")
+            fd = open(os.path.join(case_dir, "registryfiles", "rdb-files.txt"), "r")
         except:
             return
 

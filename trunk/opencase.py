@@ -28,7 +28,7 @@ from datastructures.tree.paralleltree import *
 
 import template_manager as tmmod
 
-profile = 1
+profile = 0
 
 class objclass:
     pass
@@ -133,13 +133,23 @@ class opencase:
 
         self.fill_fileid_hash()
         obj.stringtable.precache_values()
+        
+        self.stringtable    = obj.stringtable
+        self.vtable         = obj.vtable
+        self.case_directory = self.directory
+        
 
 def main():
 
     case_dir = sys.argv[1]
 
     o = opencase(case_dir)
-    
+   
+    print "len: %d" % len(o.tree.nodehash)
+
+    ###
+    return
+
     o.current_fileid = int(sys.argv[3])
 
     root = o.tree.rootnode(o.current_fileid)

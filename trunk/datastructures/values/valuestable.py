@@ -112,7 +112,7 @@ class valuesholder:
         aid = self.stringtable.getadd_string(asciidata)
         rid = self.stringtable.getadd_string(rawdata)
 
-        key = "%d|%d|%d" % (nid, aid, rid)
+        key = "%d|%d|%d|%s" % (nid, aid, rid, regtype)
 
         if not key in self.vals_hash:
         

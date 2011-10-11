@@ -71,14 +71,14 @@ class ptree:
         return pid
 
     def rootnode(self, fileid):
-        
-        return self.rootnodes[fileid]
+       
+        ret = self.rootnodes[fileid]
+        return ret 
 
     # reset values that could take up memory
     # and that aren't neded after processing
     def before_pickle(self):
         self.past_queries = {}
-        self.keyfilter = {}
             
     # add node to hash tabe
     def add_hash(self, node):
@@ -103,7 +103,7 @@ class ptree:
 
         pid = self.parent_id(parent)
 
-        hkey = "%d|%d" % (pid,sid)
+        hkey = "%d|%d" % (pid, sid)
 
         if hkey in self.past_queries:
             ret = self.past_queries[hkey]
@@ -174,11 +174,9 @@ class ptree:
             # update fileid
             elif not fileid in node.fileids: # and idx < max:
                 node.fileids.append(fileid)
-                
+            
             parent  = node
             
-            #idx = idx + 1
-    
             if firstnode:        
                 self.rootnodes[fileid] = node
                 firstnode = 0

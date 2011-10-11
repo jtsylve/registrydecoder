@@ -175,7 +175,7 @@ class acquire_files:
             
         # keep a list of RDB files added
         elif evidence_type[0] == RDB:
-            fd = open(os.path.join(gui_ref.directory, "rdb-files.txt"), "a+")            
+            fd = open(os.path.join(gui_ref.directory, "registryfiles", "rdb-files.txt"), "a+")            
             fd.write(evidence_file + "\n")
             fd.close() 
 

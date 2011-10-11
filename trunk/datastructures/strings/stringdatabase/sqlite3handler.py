@@ -55,8 +55,12 @@ class sqlite3class:
 
         self.apply_pragmas()
 
-        self.cursor.execute("create table stringtable (string text unique collate nocase, id integer primary key asc)")
-        self.cursor.execute("create index searchindex on stringtable (string collate nocase)")
+        # they already exist if new evidence is being added
+        try:
+            self.cursor.execute("create table stringtable (string text unique collate nocase, id integer primary key asc)")
+            self.cursor.execute("create index searchindex on stringtable (string collate nocase)")
+        except:
+            pass
 
         self.conn.commit()
 

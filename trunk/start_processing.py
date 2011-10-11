@@ -1,4 +1,3 @@
-#
 # Registry Decoder
 # Copyright (c) 2011 Digital Forensics Solutions, LLC
 #
@@ -36,7 +35,7 @@ from datastructures.values.valuestable import *
 from datastructures.tree.paralleltree import *
 from datastructures.strings.stringtable import *
 from guicontroller import *
-import common
+import common, opencase
 
 # whether to profile the run through command line
 profile = 0
@@ -66,13 +65,18 @@ class case_processing:
             cursor.execute("PRAGMA journal_mode=MEMORY")
             cursor.execute("PRAGMA temp_store=2")
 
-            if i == 0:        
-                cursor.execute("create table keyvalues (nodeid int, namesid int, fileid int, rawsid int , asciisid int, regtype text, id integer primary key asc)")
-                cursor.execute("create index keyvalindex on keyvalues (nodeid,fileid)")
+            if i == 0:
+                try:        
+                    cursor.execute("create table keyvalues (nodeid int, namesid int, fileid int, rawsid int , asciisid int, regtype text, id integer primary key asc)")
+                    cursor.execute("create index keyvalindex on keyvalues (nodeid,fileid)")
+                except:
+                    pass
             elif i == 1:
-                cursor.execute("create table treenodes (nodeid int unique, parentid int, stringid int, id integer primary key asc)")
-                cursor.execute("create index treeindex on treenodes (nodeid, parentid, stringid)") 
-        
+                try:
+                    cursor.execute("create table treenodes (nodeid int unique, parentid int, stringid int, id integer primary key asc)")
+                    cursor.execute("create index treeindex on treenodes (nodeid, parentid, stringid)") 
+                except:
+                    pass
             i = i + 1
 
             conn.commit()
@@ -95,11 +99,45 @@ class case_processing:
 
             pid_cache[pid].append(nodeid)
  
-            cursor.execute("insert into treenodes (nodeid, parentid, stringid) values(?,?,?)", (nodeid, pid, sid))
+            try:
+                cursor.execute("insert into treenodes (nodeid, parentid, stringid) values(?,?,?)", (nodeid, pid, sid))
+            except sqlite3.IntegrityError:
+                pass
 
         conn.commit()
 
         case_obj.tree.pid_cache = pid_cache
+
+    # refill past_queries from previous values
+    def reinit_trees(self, obj):
+
+        conn = sqlite3.connect(os.path.join(obj.case_directory, "treenodes.db"))
+        cursor = conn.cursor()
+
+        cursor.execute("select nodeid, parentid, stringid from treenodes")
+
+        for (nid, pid, sid) in cursor.fetchall():
+
+            key = "%d|%d" % (pid, sid)
+            obj.tree.past_queries[key] = obj.tree.idxtonode(nid)
+
+    def reinit_vals(self, obj):
+
+        conn   = sqlite3.connect(os.path.join(obj.case_directory, "namedata.db"))
+        cursor = conn.cursor()
+
+        cursor.execute("select namesid, rawsid, asciisid, regtype, id from keyvalues") 
+        
+        for (nid, rid, aid, regtype, vid) in cursor.fetchall():
+
+            key = "%d|%d|%d|%s" % (nid, aid, rid, regtype)
+            
+            obj.vtable.vals_hash[key] = vid
+
+    def reinit_htables(self, obj):
+
+        self.reinit_trees(obj)
+        self.reinit_vals(obj) 
 
     def create_tree(self, obj, case_directory):
     
@@ -123,7 +161,11 @@ class case_processing:
 
         self.evidence_db.update_label(gui_ref, "Starting Processing")
 
-        case_obj = self.setup_case_obj(gui_ref.directory)
+        if gui_ref.gui.add_evidence: 
+            case_obj = opencase.opencase(gui_ref.directory)
+            self.reinit_htables(case_obj) 
+        else:
+            case_obj = self.setup_case_obj(gui_ref.directory)
 
         ehash = {}
 

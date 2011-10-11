@@ -98,8 +98,9 @@ class caseInformation:
                 QMessageBox.critical(self.gui,"Eror","Unable to write to specific directory")
             
             elif os.listdir(self.directory):
+                # BUG
                 QMessageBox.critical(self.gui,"Error","Non-empty directory specificied. Pleaes choose another.")                
-            
+                ret = 2
             else:
                 ret = 1
             
@@ -114,7 +115,13 @@ class caseInformation:
         self.directory     = unicode(self.gui.caseDirectoryInput.text())
         self.directory     = self.directory.strip("\r\n\t")
             
-        if pass_check or self.check_directory():
+        passed = self.check_directory()
+
+        # if the user is adding evidence to a new case
+        self.gui.add_evidence = passed == 2
+
+        # keep old investigator info is just adding evidence
+        if pass_check or passed == 1:
     
             self.create_casedb()
         
@@ -131,10 +138,14 @@ class caseInformation:
 
             self.conn.commit()
         
+        if passed:
+            
             self.gui.created_dir = self.directory
 
+            self.gui.evidenceTable.clear()  
+
             self.showAddEvidenceForm()
-    
+   
     def showAddEvidenceForm(self):
         self.gui.stackedWidget.setCurrentIndex(common.ADD_EVIDENCE)        
 
@@ -325,15 +336,20 @@ class caseSummary:
             os.mkdir(regdir)
         except:
             # the case_obj stuff gets reinitalized after button is pressed
-            
-            self.removeall(self.directory)
-            #os.mkdir(self.directory)
-            os.mkdir(regdir)
-
-        os.mkdir(os.path.join(regdir,"singlefiles"))
+            if self.gui.add_evidence == 0:
+                self.removeall(self.directory)
+                os.mkdir(regdir)
+        try:
+            os.mkdir(os.path.join(regdir,"singlefiles"))
+        except:
+            pass
 
     def startProcessingButtonClicked(self):
 
+        self.gui.progressLabel.setText(QString("Starting Processing.."))
+        self.gui.update()
+        self.gui.app.processEvents()
+     
         # setup the case directory
         self.setupCaseDir()
 
@@ -356,6 +372,8 @@ class caseSummary:
         
         # everything added, lets do some forensics!
         else:
+            # delete all our scratch files / databases
+            self.removeall(os.path.join(self.directory, "registryfiles"))
             self.gui.stackedWidget.setCurrentIndex(common.CASE_WINDOW)
 
     def handle_parse_error(self, e):

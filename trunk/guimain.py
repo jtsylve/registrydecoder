@@ -204,7 +204,7 @@ class file_menu:
 
     def closeCaseClicked(self):
 
-        attrs = ["case_obj", "directory", "alias_hash", "created_dir", "acquire_current", "acquire_backups"]
+        attrs = ["case_obj", "directory", "alias_hash", "created_dir", "acquire_current", "acquire_backups", "add_evidence"]
        
         for attr in attrs:
             if hasattr(self.gui, attr):
