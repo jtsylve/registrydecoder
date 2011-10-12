@@ -1428,6 +1428,7 @@
     </property>
     <addaction name="actionExport_Plugins"/>
     <addaction name="actionExport_Searches"/>
+    <addaction name="actionExport_Paths"/>
     <addaction name="actionExport_Plugins_and_Searches"/>
    </widget>
    <addaction name="FileMenu"/>
@@ -1475,12 +1476,17 @@
   </action>
   <action name="actionExport_Plugins_and_Searches">
    <property name="text">
-    <string>Export Plugins and Searches</string>
+    <string>Export All</string>
    </property>
   </action>
   <action name="actionClose_Case_2">
    <property name="text">
     <string>Close Case</string>
+   </property>
+  </action>
+  <action name="actionExport_Paths">
+   <property name="text">
+    <string>Export Paths</string>
    </property>
   </action>
  </widget>

@@ -384,6 +384,7 @@ class registryDecoderGUI(QMainWindow, Ui_registrydecoder):
             # export menu
             self.connect( self.actionExport_Plugins, SIGNAL("triggered(bool)"), self.plugintab.rh.saveAllPlugins) 
             self.connect( self.actionExport_Searches, SIGNAL("triggered(bool)"), self.searchtab.rh.saveAllSearches)
+            self.connect( self.actionExport_Paths, SIGNAL("triggered(bool)"), self.searchtab.rh.saveAllPaths)
             self.connect( self.actionExport_Plugins_and_Searches, SIGNAL("triggered(bool)"), self.searchtab.rh.savePluginsSearches)
 
             self.file_drawn = 1

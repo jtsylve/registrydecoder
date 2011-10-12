@@ -79,7 +79,7 @@ class caseInformation:
         
         self.made_db = 1
 
-    def check_directory(self):
+    def check_directory(self, pass_check):
 
         ret = 0
         good = 0
@@ -95,10 +95,15 @@ class caseInformation:
             if not mode & stat.S_IWUSR:
                 QMessageBox.critical(self.gui,"Eror","Unable to write to specific directory")
             
-            elif os.listdir(self.directory):
-                # BUG
-                QMessageBox.critical(self.gui,"Error","Non-empty directory specificied. Pleaes choose another.")                
-                ret = 2
+            elif os.listdir(self.directory) and not pass_check:
+                # ask the user if they are adding evidence to a new case
+                # if not, error out
+                # if, return 2
+                ok = self.gui.yesNoDialog("Chosen directory already oontains files.", "Are you adding files to an existing case?")
+                if ok:
+                    ret = 2
+                else:
+                    QMessageBox.critical(self.gui,"Error","Non-empty directory specificied. Pleaes choose another.")
             else:
                 ret = 1
             
@@ -113,7 +118,7 @@ class caseInformation:
         self.directory     = unicode(self.gui.caseDirectoryInput.text())
         self.directory     = self.directory.strip("\r\n\t")
             
-        passed = self.check_directory()
+        passed = self.check_directory(pass_check)
 
         # if the user is adding evidence to a new case
         self.gui.add_evidence = passed == 2
@@ -140,7 +145,8 @@ class caseInformation:
             
             self.gui.created_dir = self.directory
 
-            self.gui.evidenceTable.clearContents()  
+            if not pass_check:
+                self.gui.evidenceTable.clearContents()  
 
             self.showAddEvidenceForm()
    

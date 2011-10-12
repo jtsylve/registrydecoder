@@ -322,6 +322,8 @@ class generate_forms:
         self.gui.connect(ViewFileTreeWidget.selectionModel(), SIGNAL("selectionChanged(QItemSelection, QItemSelection)"), model.arrow_move)
         self.gui.connect(ViewDataTableWidget.selectionModel(), SIGNAL("selectionChanged(QItemSelection, QItemSelection)"), model.value_arrow_move)
 
+        self.set_ctrlw_handler(self.gui, fileViewTab)
+        
         return fileViewTab 
  
 

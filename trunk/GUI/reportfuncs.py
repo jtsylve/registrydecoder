@@ -83,9 +83,13 @@ class report_handler:
 
         self.saveAll(self.gui.searchtab.active_tabs, "Bulk Search Export")
 
+    def saveAllPaths(self, isChecked):
+
+        self.saveAll(self.gui.pathtab.active_tabs, "Bulk Path Export")
+
     def savePluginsSearches(self, isChecked):
 
-        self.saveAll(dict(self.gui.searchtab.active_tabs.items() + self.gui.plugintab.active_tabs.items()), "Bulk Search and Plugin Export")
+        self.saveAll(dict(self.gui.searchtab.active_tabs.items() + self.gui.plugintab.active_tabs.items() + self.gui.pathtab.active_tabs.items), "Bulk Search, Plugin, and Path Export")
 
     # called when the menu report plugin is clicked, loads form that allows for exporting
     def saveAll(self, active_tabs, header):
