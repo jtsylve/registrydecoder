@@ -122,7 +122,7 @@ from GUI.pathtab import pathtab
 
 import GUI.guicommon as gcommon
 
-import opencase
+import opencase, common
 
 class objclass:
     pass
@@ -206,7 +206,7 @@ class file_menu:
 
     def closeCaseClicked(self):
 
-        attrs = ["case_obj", "directory", "alias_hash", "created_dir", "acquire_current", "acquire_backups", "add_evidence"]
+        attrs = ["case_obj", "directory", "alias_hash", "created_dir", "acquire_current", "acquire_backups", "add_evidence", "plugin_dirs"]
        
         for attr in attrs:
             if hasattr(self.gui, attr):
@@ -272,6 +272,8 @@ class registryDecoderGUI(QMainWindow, Ui_registrydecoder):
         Ui_registrydecoder.__init__(self)
         self.setupUi(self)
         self.app = app
+
+        common.parse_cmdline(self, sys.argv) 
 
         # for now, just to register all the slots
         self.createcase = createcase(self)
@@ -514,14 +516,11 @@ def do_main():
 
 def main():
     
-    errmsg = ""
-
     if profile:
         import cProfile
         cProfile.run('do_main()')
     else:
         do_main()
-
 
 if __name__ == "__main__":
     main()

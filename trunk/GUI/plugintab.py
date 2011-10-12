@@ -164,11 +164,9 @@ class plugintab:
         finfo = self.fileinfo_hash[fileid]
 
         for plugin in plugins:
-            
-            # if the hive the plugin supports is not the 
-            # hive of the current file then skip it
-            # if we one day have plugins that support multiple hives, this can easily be changed            
-            if not finfo.reg_type or plugin.hive != registry_types[finfo.reg_type]:
+
+            # if the hive the plugin supports is not the hive of the current file then skip it
+            if not finfo.reg_type or not registry_types[finfo.reg_type] in plugin.hives:
                 #print "Skipping plugin %s on %s" % (plugin.name, finfo.reg_file)
                 continue                    
 
@@ -422,7 +420,7 @@ class plugintab:
         widgetname = "pluginListWidget"
 
         # load the templates/plugins
-        self.tm.load_templates(self.gui.case_obj)
+        self.tm.load_templates(self.gui.case_obj, self.gui.plugin_dirs)
 
         self.gui.pluginListWidget.clear()
 
@@ -439,7 +437,7 @@ class plugintab:
         ts = {}
 
         for t in templates:
-            if self.current_hive in ["", "ALL"] or t.hive == self.current_hive:
+            if self.current_hive in ["", "ALL"] or self.current_hive in t.hives:
                 ts[t.pluginname] = t 
 
         # plugins in abc order

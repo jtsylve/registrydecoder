@@ -125,9 +125,7 @@ class evidence_database:
             evidence_type = self.guess_type(hive_name)
 
         if not evidence_type and hive_name:
-            # TODO ideally we could raise this error, but there are still some files (usrclass, default) that we don't deal with yet
-            #raise MsgBoxError("Couldnt find type for %s -> %s" % (hive_name, fullpath))
-            print "Couldnt find type for %s -> %s" % (hive_name, fullpath)
+            raise MsgBoxError("Couldnt find type for %s -> %s" % (hive_name, fullpath))
 
         return (md5, mtime, evidence_type)
         
@@ -243,7 +241,6 @@ class evidence_database:
 
                 self.update_label(self.gui_ref, "Processing Single File %s" % filename)
 
-                # TODO --
                 group_name = "SINGLE"
                 group_id   = self.insert_file_group(group_name, evidence_source_id)
 

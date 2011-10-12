@@ -145,11 +145,6 @@ def main():
 
     o = opencase(case_dir)
    
-    print "len: %d" % len(o.tree.nodehash)
-
-    ###
-    return
-
     o.current_fileid = int(sys.argv[3])
 
     root = o.tree.rootnode(o.current_fileid)

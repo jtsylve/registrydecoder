@@ -23,7 +23,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
 #
 import os, sys
-#from template_parser import TemplateParser, TemplateException
 import templates
 import templates.util.util as tutil
 
@@ -56,7 +55,7 @@ class TemplateManager:
     # Returns the list of loaded templated which run on the specified hive 
     # ("System", "Software" ...)
     def get_hive_templates(self, hive):
-        return [t for t in self.templates if t.hive == hive]
+        return [t for t in self.templates if hive in t.hives]
     
     def reset_report(self):
         self.report_data = []
@@ -130,28 +129,28 @@ class TemplateManager:
         self.attach_report_methods(mod, case_obj)
 
    # Walk the template directory and parse each file into a Template.
-    def load_templates(self, case_obj):
-    
-        required_attrs = ["pluginname", "description", "hive", "run_me"]
-
-        self.templates = []
+    def load_templates(self, case_obj, extra_dirs):
         
+        self.templates = []
+    
         if '_MEIPASS2' in os.environ:
             self.template_directory = os.path.join(os.environ['_MEIPASS2'], "templatess")
             sys.path.append(self.template_directory)
+       
+        self.import_templates(case_obj, self.template_directory)
         
-        for root, dirs, files in os.walk(self.template_directory):
+        for directory in extra_dirs:
+
+            sys.path.append(directory)
+            self.import_templates(case_obj, directory)
+
+    def import_templates(self, case_obj, directory):
+
+        required_attrs = ["pluginname", "description", "run_me"]
+
+        for root, dirs, files in os.walk(directory):
             for fd in files:
-                # TODO - test user templates
-                '''
-                if fd.endswith(".tem") or fd.endswith(".TEM"):
-                    # these are text templates which we need to parse
-                    try:
-                        self.templates.append(TemplateParser().parse(os.path.join(root, fd)))
-                    except TemplateException as e:
-                        print "\nERROR: Template parsing error in file: %s" % e.fname
-                        print "\n\tMessage: %s" % e.message
-                '''
+                
                 if fd.endswith(".py") or fd.endswith(".PY"):
                     # these are python api templates which we need to load
                     # modules must define everything in required_attrs
@@ -168,6 +167,12 @@ class TemplateManager:
                             valid = 0
                 
                     if valid:
+
+                        # allows plugins to work on multiple hive types                                                
+                        if hasattr(mod, "hive"):
+                            setattr(mod, "hives", [mod.hive])
+                            delattr(mod, "hive")
+
                         self.attach_methods(mod, case_obj)
                         self.templates.append(mod)
                             

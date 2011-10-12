@@ -22,10 +22,32 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
 #
-import sys, os, sqlite3
+import sys, os, sqlite3, getopt
 
 from datetime import date, datetime
 
+def parse_cmdline(gui, args):
+
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "d:", ["directory="])
+    except getopt.GetoptError, err:
+        print "usage: python guimain.py"
+        print "optional argument: (-d/--directory) to specify an extra plugin directory"
+        sys.exit(1)
+
+    directories = ""
+   
+    for o, a in opts:
+
+        if o in ("-d", "--directory"):  
+            directories = a
+
+
+    if directories:
+        gui.plugin_dirs = directories.split(";")
+    else:
+        gui.plugin_dirs = []
+         
 def connect_db(directory, db_name):
 
     dbname = os.path.join(directory, db_name)
