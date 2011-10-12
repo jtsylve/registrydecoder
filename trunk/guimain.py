@@ -117,6 +117,7 @@ from GUI.filetab import filetab
 from GUI.plugintab import plugintab
 from GUI.searchtab import searchtab
 from GUI.reportfuncs import report_handler
+from GUI.pathtab import pathtab
 
 import GUI.guicommon as gcommon
 
@@ -304,16 +305,22 @@ class registryDecoderGUI(QMainWindow, Ui_registrydecoder):
         self.connect( self.searchPushButton, SIGNAL("clicked()"), self.searchtab.viewTree)
         self.connect( self.searchTermsPushButton, SIGNAL("clicked()"), self.searchtab.search_terms_file_browse)
         self.connect( self.performSearchDiffCheckBox, SIGNAL("clicked(bool)"), self.searchtab.diffBoxClicked)      
+        
         self.searchDiffTreeWidget.hide()       
           
         # searchDiffTreeWidget
         # performSearchDiffCheckBox
 
+        self.pathtab = pathtab(self)
+        self.connect( self.pathPushButton, SIGNAL("clicked()"), self.pathtab.viewTree)
+        self.connect( self.pathTermsPushButton, SIGNAL("clicked()"), self.pathtab.path_terms_file_browse)
+ 
         self.file_drawn   = 0
         self.plugin_drawn = 0
         self.search_drawn = 0
+        self.path_drawn = 0
 
-        self.analysis_tabs = [self.filetab, self.plugintab, self.searchtab]
+        self.analysis_tabs = [self.filetab, self.plugintab, self.searchtab, self.pathtab]
 
     def resetForm(self):
     
@@ -333,8 +340,6 @@ class registryDecoderGUI(QMainWindow, Ui_registrydecoder):
             ret = True            
         elif answer == QMessageBox.No:
             ret = False
-        else:
-            print "BUG --- not yes or no???"
 
         return ret
 
@@ -403,6 +408,12 @@ class registryDecoderGUI(QMainWindow, Ui_registrydecoder):
             if not self.search_drawn:
                 self.searchtab.draw()
                 self.search_drawn = 1
+
+        elif text == "Path Analysis":
+
+            if not self.path_drawn:
+                self.pathtab.draw()
+                self.path_drawn = 1
  
         # some dynamic tabs need this
         elif hasattr(widget, "fileid"):

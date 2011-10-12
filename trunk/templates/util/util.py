@@ -437,8 +437,6 @@ class templateutil:
     # Returns the string current control set number, or raises an exception if
     # the current control set cannot be determined.
 
-    # BUG: Implement exception.
- 
     def get_current_control_set(self):
 	
         res = False	

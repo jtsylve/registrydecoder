@@ -67,7 +67,7 @@ class case_processing:
 
             if i == 0:
                 try:        
-                    cursor.execute("create table keyvalues (nodeid int, namesid int, fileid int, rawsid int , asciisid int, regtype text, id integer primary key asc)")
+                    cursor.execute("create table keyvalues (namesid int, fileid int, rawsid int , asciisid int, regtype text, id integer primary key asc)")
                     cursor.execute("create index keyvalindex on keyvalues (nodeid,fileid)")
                 except:
                     pass

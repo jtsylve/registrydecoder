@@ -52,7 +52,6 @@ class acquire_files:
 
         mtime = int(os.path.getmtime(filename))
     
-        # TODO BUG --- comma in filename
         fd.write("%s\t%d\t%d\n" % (evidence_file, mtime, self.singlefilecounter))
 
         fd.close()

@@ -22,7 +22,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
 #
-import sys, os, sqlite3
+import sys, os, sqlite3, datetime
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -67,7 +67,79 @@ class RDMessageBoxInfo(QWidget):
     def closeEvent(self, event):
         pass
 
+class search_results:
 
+    def __init__(self, filepath, evi_file, group_name, results, fileid):
+
+        self.filepath   = filepath
+        self.evi_file   = evi_file
+        self.group_name = group_name
+        self.results    = results 
+        self.fileid     = fileid
+
+    # compare based on the search results only..
+    def __cmp__(self, other):
+        return self.results == other.results
+
+    def __hash__(self):
+        return hash(str(self.results))
+# get the users date in the form of mm/dd/yyyy
+def parse_date(self, dateStr):
+
+    ents = [int(x) for x in dateStr.split("/")]
+
+    if len(ents) != 3:
+        self.gui.msgBox("Invalid start date given.")
+        ret = []
+    else:
+        (month, day, year) = ents
+        ret = QDate(year, month, day)
+
+    return ret
+
+# filter search results based on the user's choosen start and end last written dates
+def filter_results(self, results, fileid, startStr, endStr):
+
+    # the filtered set
+    ret = []
+
+    if startStr:
+        start = parse_date(self, startStr)
+        if not start:
+            return []
+    else:
+        start = ""
+
+    if endStr:
+        end = parse_date(self, endStr)
+        if not end:
+            return []
+    else:
+        end = ""
+
+    for row in xrange(len(results)):
+
+        r = results[row]
+
+        # convert last written time to QDate for easy comparison to user supplied choice
+        timestamp = r.node.timestamps[fileid]
+        c = datetime.datetime.fromtimestamp(timestamp)
+        cmpQDate = QDate(c.year, c.month, c.day)
+
+        # this allows for narrowing by both start and end or just 1 at at ime
+        if start and end:
+            append = start <= cmpQDate <= end
+        
+        elif start:
+            append = start <= cmpQDate
+
+        elif end:
+            append = end >= cmpQDate                
+
+        if append:
+            ret.append(r)
+
+    return ret
 
 # tree displayed of registry files to be analyzed
 class tree_entry:
@@ -313,6 +385,47 @@ def get_reg_fileids(self, treename):
 
     return ret
 
+def get_path_popup(self, userpath):
+
+    ret = None
+
+    if userpath:
+        path = userpath
+        ok   = True
+    else:
+        (path, ok) = QInputDialog.getText(self.gui, "Please Enter the Registry Path", "Path:")
+
+    if ok and (userpath or not path.isEmpty()):
+        # try to help out the user 
+        
+        # if they didn't give leading \, add it
+        if path[0] != "\\":
+            path = "\\" + path
+
+        # if they gave a trailing \, strip it
+        if path[-1] == "\\":
+            path = path[:-1]
+
+        ret = unicode(self.tapi.get_path(path))
+
+    return ret
+
+def get_tree_node(self, userpath=""):
+        
+    path = get_path_popup(self, userpath)
+
+    if not path:
+        return None
+    
+    nodes = self.tapi.root_path_node(path)     
+
+    if nodes:
+        node = nodes[-1]
+    else:
+        return None 
+
+    return node
+
 # get files ids from a tree, enforce number of files allowed to be choosen
 def get_file_ids(self, tree_name, allowed_files=-1):
 
@@ -434,6 +547,43 @@ def get_idxs(data_list):
         
     return idxs
 
+# used to get the search/path term or terms from a file for the search and paths tab
+def get_search_terms(gui, place="search"):    
+
+    edit = gui.__getattribute__("%sLineEdit" % place)
+    searchterm = unicode(edit.text())
+
+    # the user entered a single search term
+    if len(searchterm) > 0:
+        searchterms = [searchterm]
+        filename    = ""
+
+    else:
+        searchterms = []
+
+        lineedit =  gui.__getattribute__("%sTermsLineEdit" % place)
+        filename = unicode(lineedit.text())
+
+        try:
+            fd = open(filename, "rb")
+        except:
+            gui.msgBox("Unable to open given search terms file. Cannot Proceed")
+            return (searchterms, "")
+
+        for term in fd.readlines():
+
+            # carefully remove newlines from terms...
+            if term[-1] == '\n':
+                term = term[:-1]
+
+            if term[-1] == '\r':
+                term = term[:-1]
+
+            searchterms.append(term)                
+
+    return (searchterms, filename)
+
+
 ########################################## 
 #     right click menu stuff             #
 ##########################################
@@ -475,7 +625,7 @@ class action_handler:
     # sets a tree to a position based on a search hit
     def on_action_fileview(self):
    
-        node = self.ref_obj.get_tree_node()     
+        node = get_tree_node(self.ref_obj)     
 
         if not node:
             if self.error_no_path == 1:

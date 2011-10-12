@@ -50,6 +50,9 @@ class generate_forms:
     def plugin_export_form(self, ref_obj, fileid, tab_name, label_text): 
         return self.search_plugin_export_form(ref_obj, fileid, tab_name, label_text)
 
+    def path_export_form(self, ref_obj, fileid, tab_name, label_text):
+        return self.search_plugin_export_form(ref_obj, fileid, tab_name, label_text)        
+
     # this is pretty ugly, a mix up of a few functions, has cruft everywhere, etc
     def search_plugin_export_form(self, ref_obj, fileid, tab_name, label_text, results=None):
 
@@ -126,9 +129,8 @@ class generate_forms:
             tableWidget.setRowCount(len(results))
             tableWidget.keyPressEvent = ref_obj.handle_search_delete
 
-            new_tab.searchResTable = tableWidget
-            new_tab.searchResLabel = label_12
-
+        new_tab.searchResTable = tableWidget
+        new_tab.searchResLabel = label_12
 
         # keep references to the table and the combobox
         new_tab.tblWidget    = tableWidget

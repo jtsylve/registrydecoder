@@ -23,7 +23,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
 #
 import common
-import sys, sqlite3, os, types, struct, binascii
+import sys, sqlite3, os, types, struct
 
 from datastructures.strings.stringtable import *
 
@@ -104,10 +104,10 @@ class valuesholder:
         asciidata = self.get_ascii_type(val.data)
         
         if val.data and regtype == 3: # REG_BINARY
-            rawdata  = "".join(["%.02x" % ord(r) for r in asciidata])
+            rawdata  = "".join(["%.02x" % r for r in val.data])
         else:
             rawdata = asciidata
-        
+ 
         nid = self.stringtable.getadd_string(name)
         aid = self.stringtable.getadd_string(asciidata)
         rid = self.stringtable.getadd_string(rawdata)

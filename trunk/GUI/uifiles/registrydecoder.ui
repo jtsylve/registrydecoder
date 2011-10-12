@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1197</width>
-    <height>877</height>
+    <width>1227</width>
+    <height>888</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -625,7 +625,7 @@
       </widget>
       <widget class="QWidget" name="analysis_page">
        <layout class="QGridLayout" name="gridLayout_3">
-        <item row="0" column="0">
+        <item row="0" column="1">
          <widget class="QTabWidget" name="analysisTabWidget">
           <property name="enabled">
            <bool>true</bool>
@@ -1086,6 +1086,169 @@
             </item>
            </layout>
           </widget>
+          <widget class="QWidget" name="pathAnalysisTab">
+           <attribute name="title">
+            <string>Path Analysis</string>
+           </attribute>
+           <layout class="QGridLayout" name="gridLayout_25">
+            <item row="0" column="0">
+             <layout class="QGridLayout" name="gridLayout_24">
+              <item row="0" column="0" rowspan="3">
+               <widget class="QTreeWidget" name="pathAnalysisTreeWidget">
+                <column>
+                 <property name="text">
+                  <string>Registry Files</string>
+                 </property>
+                </column>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <spacer name="horizontalSpacer_19">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>538</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="1" column="1">
+               <layout class="QGridLayout" name="gridLayout_23">
+                <item row="0" column="0" colspan="5">
+                 <widget class="QLabel" name="label_17">
+                  <property name="text">
+                   <string>Path</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0" colspan="5">
+                 <widget class="QLineEdit" name="pathLineEdit"/>
+                </item>
+                <item row="2" column="0" colspan="5">
+                 <widget class="QLabel" name="label_22">
+                  <property name="text">
+                   <string>Paths (File)</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="0" colspan="4">
+                 <widget class="QLineEdit" name="pathTermsLineEdit">
+                  <property name="text">
+                   <string/>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="4">
+                 <widget class="QPushButton" name="pathTermsPushButton">
+                  <property name="text">
+                   <string>Browse</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="5" column="1" colspan="2">
+                 <widget class="QLabel" name="label_19">
+                  <property name="text">
+                   <string>Start Date</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item row="5" column="3" colspan="2">
+                 <widget class="QLabel" name="label_21">
+                  <property name="text">
+                   <string>End Date</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item row="6" column="0">
+                 <widget class="QLabel" name="label_20">
+                  <property name="text">
+                   <string>Filter (mm/dd/yyyy)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="6" column="1" colspan="2">
+                 <widget class="QLineEdit" name="pathStartDateLineEdit"/>
+                </item>
+                <item row="6" column="3" colspan="2">
+                 <widget class="QLineEdit" name="pathEndDateLlineEdit"/>
+                </item>
+                <item row="8" column="0" colspan="2">
+                 <widget class="QCheckBox" name="pathValuesCheckBox">
+                  <property name="text">
+                   <string>Include Values</string>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item row="8" column="2" colspan="2">
+                 <widget class="QPushButton" name="pathPushButton">
+                  <property name="text">
+                   <string>Find Path</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="7" column="0" colspan="5">
+                 <spacer name="horizontalSpacer_17">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item row="4" column="0" colspan="5">
+                 <spacer name="horizontalSpacer_18">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+              <item row="2" column="1">
+               <spacer name="horizontalSpacer_20">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>538</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
          </widget>
         </item>
        </layout>
@@ -1137,7 +1300,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1197</width>
+     <width>1227</width>
      <height>25</height>
     </rect>
    </property>

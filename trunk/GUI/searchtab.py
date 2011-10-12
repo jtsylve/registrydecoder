@@ -30,24 +30,6 @@ from PyQt4.QtNetwork import *
 
 import datetime
 
-class search_results:
-
-    def __init__(self, filepath, evi_file, group_name, results, fileid):
-
-        self.filepath   = filepath
-        self.evi_file   = evi_file
-        self.group_name = group_name
-        self.results    = results 
-        self.fileid     = fileid
-
-    # compare based on the search results only..
-    def __cmp__(self, other):
-        return self.results == other.results
-
-    def __hash__(self):
-        return hash(str(self.results))
-
-
 class search_params:
 
     def __init__(self, searchterms, searchfile, partialsearch, searchKeys, searchNames, searchData, startDate, endDate):
@@ -105,39 +87,6 @@ class searchtab:
         
         self.gui.searchTermsLineEdit.setText(filename)
 
-    def get_search_terms(self):    
-
-        searchterm = unicode(self.gui.searchLineEdit.text())
-    
-        # the user entered a single search term
-        if len(searchterm) > 0:
-            searchterms = [searchterm]
-            filename    = ""
-
-        else:
-            searchterms = []
-
-            filename = unicode(self.gui.searchTermsLineEdit.text())
-
-            try:
-                fd = open(filename, "rb")
-            except:
-                self.gui.msgBox("Unable to open given search terms file. Cannot Proceed")
-                return (searchterms, "")
-
-            for term in fd.readlines():
-
-                # carefully remove newlines from terms...
-                if term[-1] == '\n':
-                    term = term[:-1]
-
-                if term[-1] == '\r':
-                    term = term[:-1]
-
-                searchterms.append(term)                
-
-        return (searchterms, filename)
-
     def boxIsChecked(self, boxName):
 
         return self.gui.__getattribute__(boxName).isChecked()
@@ -148,7 +97,7 @@ class searchtab:
        
     def get_search_params(self):
 
-        (searchterms, searchfile)  = self.get_search_terms()
+        (searchterms, searchfile)  = self.gcommon.get_search_terms(self.gui)
 
         if len(searchterms) == 0:
             self.gui.msgBox("No search term(s) were entered. Unable to process")
@@ -181,7 +130,7 @@ class searchtab:
 
         # remove results that break on the user date filtering
         if len(results) and (sp.startDate or sp.endDate):
-            results = self.filter_results(results, fileid, sp.startDate, sp.endDate)
+            results = self.gcommon.filter_results(self, results, fileid, sp.startDate, sp.endDate)
 
         return results
     
@@ -195,7 +144,7 @@ class searchtab:
         # results for fileid
         results = self.do_get_search_results(sp, fileid)
 
-        return search_results(filepath, evi_file, group_name, results, fileid)
+        return self.gcommon.search_results(filepath, evi_file, group_name, results, fileid)
 
     def get_label_text(self, searchterm, filepath):
 
@@ -297,7 +246,7 @@ class searchtab:
         idxs = self.gcommon.get_idxs(data_ents)
 
         # will be real values if we decide to report diff output
-        sr = search_results("", "", "", data_list, -42)
+        sr = self.gcommon.search_results("", "", "", data_list, -42)
         tab = self.do_gen_tab(sp, sr, -42)
         
         tab.do_not_export = 1
@@ -406,14 +355,8 @@ class searchtab:
             
             r = results[row]
             
-            try:
-                lastwrite = r.node.timestamps[fileid]
-            except:
-                print "unable to get fileid %d | %s for %s" % (fileid, str(r.node.timestamps), r.node.fullpath)
-                lastwrite = "BAD"
-                
-            else:
-                lastwrite = datetime.datetime.fromtimestamp(lastwrite).strftime('%Y/%m/%d %H:%M:%S UTC')
+            lastwrite = r.node.timestamps[fileid]
+            lastwrite = datetime.datetime.fromtimestamp(lastwrite).strftime('%Y/%m/%d %H:%M:%S UTC')
  
             vals  = [lastwrite, r.node.fullpath, r.name, r.data]
 
@@ -436,67 +379,6 @@ class searchtab:
         tm = tmclass(report_vals)
         
         self.rm.report_tab_info(report, tm, tab, self.active_tabs, fileid, "Search", "Search Term", searchterm, match_idxs=match_idxs, color_idxs = color_idxs)
-
-    # get the users date in the form of mm/dd/yyyy
-    def parse_date(self, dateStr):
-
-        ents = [int(x) for x in dateStr.split("/")]
-
-        if len(ents) != 3:
-            self.gui.msgBox("Invalid start date given.")
-            ret = []
-        else:
-            (month, day, year) = ents
-            ret = QDate(year, month, day)
-
-        return ret
-
-    # filter search results based on the user's choosen start and end last written dates
-    def filter_results(self, results, fileid, startStr, endStr):
-
-        # the filtered set
-        ret = []
-
-        if startStr:
-            start = self.parse_date(startStr)
-            if not start:
-                return []
-        else:
-            start = ""
-
-        if endStr:
-            end = self.parse_date(endStr)
-            if not end:
-                return []
-        else:
-            end = ""
-
-        for row in xrange(len(results)):
-
-            r = results[row]
-
-            # convert last written time to QDate for easy comparison to user supplied choice
-            timestamp = r.node.timestamps[fileid]
-            c = datetime.datetime.fromtimestamp(timestamp)
-            cmpQDate = QDate(c.year, c.month, c.day)
-
-            # this allows for narrowing by both start and end or just 1 at at ime
-            if start and end:
-                append = start <= cmpQDate <= end
-            
-            elif start:
-                append = start <= cmpQDate
-
-            elif end:
-                append = end >= cmpQDate                
-
-            else:
-                print "BUG -- should not be here"
-
-            if append:
-                ret.append(r)
-
-        return ret
 
     def createReportClicked(self): 
         self.rh.createReportClicked("Search Single")

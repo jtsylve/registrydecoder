@@ -445,7 +445,7 @@ class acquire_files:
            
             # we need to grab all the files of type this
             files = self.get_e01names(filepath)
-            
+           
             try:
                 img = EWFImgInfo(*files)
             except Exception, e:
@@ -469,9 +469,9 @@ class acquire_files:
         try:
             # volume info (partitions) 
             volinfo = pytsk3.Volume_Info(img)
-        except:
-            volinfo = []
-            offsets = [0]
+        except Exception, e:
+            print "cant open as volume: %s" % str(e)
+            return [(0, 0)]
 
         block_size = volinfo.info.block_size
 

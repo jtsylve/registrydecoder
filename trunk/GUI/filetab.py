@@ -397,44 +397,7 @@ class filetab:
 
         self.act_handler.setup_menu()        
 
-    def get_path_popup(self):
-
-        ret = None
-
-        (path, ok) = QInputDialog.getText(self.gui, "Please Enter the Registry Path", "Path:")
- 
-        if ok and not path.isEmpty():
-            # try to help out the user 
-            
-            # if they didn't give leading \, add it
-            if path[0] != "\\":
-                path = "\\" + path
-
-            # if they gave a trailing \, strip it
-            if path[-1] == "\\":
-                path = path[:-1]
-
-            ret = unicode(self.tapi.get_path(path))
-
-        return ret
-
-    def get_tree_node(self):
-            
-        path = self.get_path_popup()
-
-        if not path:
-            return None
-        
-        nodes = self.tapi.root_path_node(path)     
-
-        if nodes:
-            node = nodes[-1]
-        else:
-            return None 
-
-        return node
-
-   # called when 'view' is clicked on file tab
+    # called when 'view' is clicked on file tab
     def viewTree(self, fileids=[]):
         
         if not fileids:
