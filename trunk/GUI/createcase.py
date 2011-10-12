@@ -39,8 +39,6 @@ import GUI.guicommon as common
 class caseInformation:
 
     def __init__(self):
-        #self.gui.caseDirectoryInput.mousePressEvent = self.caseDirectoryInputClicked
-        #self.gui.caseDirectoryInput.focusInEvent    = self.caseDirectoryInputClicked
         self.made_db = 0
 
     def case_str(self):
@@ -142,7 +140,7 @@ class caseInformation:
             
             self.gui.created_dir = self.directory
 
-            self.gui.evidenceTable.clear()  
+            self.gui.evidenceTable.clearContents()  
 
             self.showAddEvidenceForm()
    

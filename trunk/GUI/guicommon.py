@@ -122,7 +122,12 @@ def filter_results(self, results, fileid, startStr, endStr):
         r = results[row]
 
         # convert last written time to QDate for easy comparison to user supplied choice
-        timestamp = r.node.timestamps[fileid]
+        if hasattr(r, "node"):
+            node = r.node
+        else:
+            node = r
+
+        timestamp = node.timestamps[fileid]
         c = datetime.datetime.fromtimestamp(timestamp)
         cmpQDate = QDate(c.year, c.month, c.day)
 
@@ -135,7 +140,7 @@ def filter_results(self, results, fileid, startStr, endStr):
 
         elif end:
             append = end >= cmpQDate                
-
+        
         if append:
             ret.append(r)
 

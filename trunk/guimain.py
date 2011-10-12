@@ -116,6 +116,7 @@ from GUI.createcase import createcase
 from GUI.filetab import filetab
 from GUI.plugintab import plugintab
 from GUI.searchtab import searchtab
+from GUI.timelinetab import timelinetab
 from GUI.reportfuncs import report_handler
 from GUI.pathtab import pathtab
 
@@ -307,20 +308,24 @@ class registryDecoderGUI(QMainWindow, Ui_registrydecoder):
         self.connect( self.performSearchDiffCheckBox, SIGNAL("clicked(bool)"), self.searchtab.diffBoxClicked)      
         
         self.searchDiffTreeWidget.hide()       
-          
-        # searchDiffTreeWidget
-        # performSearchDiffCheckBox
 
+        # pathtab
         self.pathtab = pathtab(self)
         self.connect( self.pathPushButton, SIGNAL("clicked()"), self.pathtab.viewTree)
         self.connect( self.pathTermsPushButton, SIGNAL("clicked()"), self.pathtab.path_terms_file_browse)
  
+        # timelinetab
+        self.timelinetab = timelinetab(self)
+        self.connect( self.timelinePushButton, SIGNAL("clicked()"), self.timelinetab.viewTree)
+        self.connect( self.timelineFilePushButton, SIGNAL("clicked()"), self.timelinetab.timeline_output_browse)
+
         self.file_drawn   = 0
         self.plugin_drawn = 0
         self.search_drawn = 0
-        self.path_drawn = 0
+        self.path_drawn   = 0
+        self.timeline_drawn = 0
 
-        self.analysis_tabs = [self.filetab, self.plugintab, self.searchtab, self.pathtab]
+        self.analysis_tabs = [self.filetab, self.plugintab, self.searchtab, self.pathtab, self.timelinetab]
 
     def resetForm(self):
     
@@ -414,6 +419,12 @@ class registryDecoderGUI(QMainWindow, Ui_registrydecoder):
             if not self.path_drawn:
                 self.pathtab.draw()
                 self.path_drawn = 1
+
+        elif text == "Timeline":
+    
+            if not self.timeline_drawn:
+                self.timelinetab.draw()
+                self.timeline_drawn = 1
  
         # some dynamic tabs need this
         elif hasattr(widget, "fileid"):

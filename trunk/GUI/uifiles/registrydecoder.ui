@@ -625,7 +625,7 @@
       </widget>
       <widget class="QWidget" name="analysis_page">
        <layout class="QGridLayout" name="gridLayout_3">
-        <item row="0" column="1">
+        <item row="0" column="0">
          <widget class="QTabWidget" name="analysisTabWidget">
           <property name="enabled">
            <bool>true</bool>
@@ -1240,6 +1240,116 @@
                 <property name="sizeHint" stdset="0">
                  <size>
                   <width>538</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="timelineTab">
+           <attribute name="title">
+            <string>Timeline</string>
+           </attribute>
+           <layout class="QGridLayout" name="gridLayout_28">
+            <item row="0" column="0">
+             <layout class="QGridLayout" name="gridLayout_27">
+              <item row="0" column="0" rowspan="3">
+               <widget class="QTreeWidget" name="timelineTreeWidget">
+                <column>
+                 <property name="text">
+                  <string>Registry Files</string>
+                 </property>
+                </column>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <spacer name="horizontalSpacer_21">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>498</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="1" column="1">
+               <layout class="QGridLayout" name="gridLayout_26">
+                <item row="0" column="0" colspan="3">
+                 <widget class="QLabel" name="label_18">
+                  <property name="text">
+                   <string>Output File</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0" colspan="2">
+                 <widget class="QLineEdit" name="timelineLineEdit"/>
+                </item>
+                <item row="1" column="2">
+                 <widget class="QPushButton" name="timelineFilePushButton">
+                  <property name="text">
+                   <string>Browse</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="1">
+                 <widget class="QLabel" name="label_25">
+                  <property name="text">
+                   <string>Start Date</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="2">
+                 <widget class="QLabel" name="label_24">
+                  <property name="text">
+                   <string>End Date</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="0">
+                 <widget class="QLabel" name="label_23">
+                  <property name="text">
+                   <string>Filter (mm/dd/yyyy)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="1">
+                 <widget class="QLineEdit" name="timelineStartDateLineEdit"/>
+                </item>
+                <item row="3" column="2">
+                 <widget class="QLineEdit" name="timelineEndDateLlineEdit_2"/>
+                </item>
+                <item row="4" column="1">
+                 <widget class="QPushButton" name="timelinePushButton">
+                  <property name="text">
+                   <string>Timeline</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="2" column="1">
+               <spacer name="horizontalSpacer_22">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>498</width>
                   <height>20</height>
                  </size>
                 </property>
