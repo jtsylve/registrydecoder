@@ -169,7 +169,8 @@ class acquire_files:
                 f = fs.open(path=fpath)
             except:
                 if raiseex:
-                    raise RDError("BUG: could not find a valid name for %s" % fpath)
+                    print "BUG: could not find a valid name for %s" % fpath
+                    #raise RDError("BUG: could not find a valid name for %s" % fpath)
                 
                 f = None
 
@@ -339,7 +340,7 @@ class acquire_files:
             if fname.startswith("RP"):
 
                 # only process still allocated restore points
-                if subdir.info.meta and subdir.info.meta.flags == 1: 
+                if subdir.info.meta and (int(subdir.info.meta.flags) & 1) == 1: 
                     subdir = fs.open_dir(inode=subdir.info.meta.addr)
 
                     for f in subdir:
@@ -350,7 +351,14 @@ class acquire_files:
                
                             # grab the registry files
                             self.parse_rp_folder(fs, f, fname, group_id)
+                else:
+                    if not subdir.info.meta:
+                        flags = -42
+                    else:
+                        flags = subdir.info.meta.flags
 
+                    print "skipping dir %s | %d" % (fname, flags)
+            
 
     def handle_sys_restore(self, fs):
 
@@ -417,7 +425,14 @@ class acquire_files:
 
         return  re.search('^(.E\d{1,})$', ext)
 
-    def get_e01names(self, filepath):
+    def is_splitfile(self, filepath):
+
+        base, ext = os.path.splitext(filepath)
+    
+        return  re.search('^(.\d{1,})$', ext)
+
+
+    def get_names(self, filepath, func):
 
         dirname = os.path.dirname(filepath)
 
@@ -428,10 +443,9 @@ class acquire_files:
 
             for filename in filenames:
 
-                if self.is_e01file(filename):
+                if func(filename):
 
                     files.append(os.path.join(dirname, filename))
-
 
         # so ugly that this is done in-place
         files.sort()
@@ -444,19 +458,20 @@ class acquire_files:
         if self.is_e01file(filepath):
            
             # we need to grab all the files of type this
-            files = self.get_e01names(filepath)
+            files = self.get_names(filepath, self.is_e01file)
            
-            try:
-                img = EWFImgInfo(*files)
-            except Exception, e:
-                # TODO
-                print "BUG: Unable to open EWF file: %s | %s" % (filepath, str(e))
+            img = EWFImgInfo(*files)
 
-            print "e01 image -> %s" % filepath
+        # split
+        elif self.is_splitfile(filepath):
 
+            files = self.get_names(filepath, self.is_splitfile)
+            
+            img = SplitImage(*files)
+
+        # regular dd/raw
         else:
             img = pytsk3.Img_Info(filepath)
-            print "normal dd -> %s" % filepath
 
         return img
 
@@ -470,7 +485,6 @@ class acquire_files:
             # volume info (partitions) 
             volinfo = pytsk3.Volume_Info(img)
         except Exception, e:
-            print "cant open as volume: %s" % str(e)
             return [(0, 0)]
 
         block_size = volinfo.info.block_size

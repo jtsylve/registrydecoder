@@ -22,7 +22,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
 #
-import sys, os, struct, cPickle, sqlite3
+import sys, os, struct, cPickle, sqlite3, getopt
 
 from datastructures.tree.paralleltree import *
 
@@ -139,27 +139,41 @@ class opencase:
         self.case_directory = self.directory
         
 
+
+def usage():
+
+    print "python openmain.py <case directory> <plugin name> <file id> <extra plugin directory (optional)>"
+    print "See the instructions file for complete description"
+    sys.exit(1)
+
 def main():
 
-    case_dir = sys.argv[1]
 
+    try:
+        case_dir    = sys.argv[1]
+        plugin_name = sys.argv[2]
+        fileid      = int(sys.argv[3])
+    except:
+        usage()
+
+    try:
+        extra = sys.argv[4]
+        extra = extra.split(";") 
+    except:
+        extra = []
+
+    # open the case and get the tree
     o = opencase(case_dir)
-   
-    o.current_fileid = int(sys.argv[3])
-
-    root = o.tree.rootnode(o.current_fileid)
+    o.current_fileid = fileid
 
     tm = tmmod.TemplateManager()
-    tm.load_templates(o)
+    tm.load_templates(o, extra)
     
     templates = tm.get_loaded_templates()
-    
-    plugin_name = sys.argv[2]
     
     ran = 0
     
     for t in templates:
-        #print t.name
         if t.pluginname == plugin_name:
             t.run_me()
             ran = 1

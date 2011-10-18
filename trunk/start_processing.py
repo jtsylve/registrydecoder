@@ -35,6 +35,8 @@ from datastructures.values.valuestable import *
 from datastructures.tree.paralleltree import *
 from datastructures.strings.stringtable import *
 from guicontroller import *
+from errorclasses import *
+
 import common, opencase
 
 # whether to profile the run through command line
@@ -187,7 +189,7 @@ class case_processing:
 
             # user chose not to skip file, need to force re-adding of evidence
             elif etype == -2:
-                return False                
+                raise RegBadEvidenceError(evidence_file)
 
             else:
                 etype = etype[0]
@@ -198,11 +200,10 @@ class case_processing:
         # remove files that could not be processed
         gui_ref.evidence_list = [item for idx,item in enumerate(gui_ref.evidence_list) if idx not in skip_indexes]
 
-
         # check if any valid files were added
         if len(gui_ref.evidence_list) == 0:
             gui_ref.gui.msgBox("No valid files were added as evidence. Cannot Proceed.")
-            return False
+            raise RegBadEvidenceError("No valid files")
 
         # write out evidence information to evidence_database.db
         self.evidence_db.write_evidence_database(gui_ref, ehash, case_obj)

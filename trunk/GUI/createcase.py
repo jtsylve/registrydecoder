@@ -373,7 +373,10 @@ class caseSummary:
         # an invalid file was given for processing
         except RegAcquireError, e:
             self.handle_parse_error(e)
-        
+       
+        except RegBadEvidenceError, e:
+            self.handle_parse_error(e)      
+
         # everything added, lets do some forensics!
         else:
             # delete all our scratch files / databases
@@ -384,7 +387,6 @@ class caseSummary:
         print "error: %s" % str(e)
         traceback.print_exc(file=sys.stdout)
 
-        
         self.caseInformationButtonClicked(1)
         self.gui.stackedWidget.setCurrentIndex(common.ADD_EVIDENCE)    
             

@@ -137,6 +137,16 @@ class acquire_files:
 
         return ret                
 
+    def continuebox(self, evidence_file, gui_ref):
+
+        cont = gui_ref.gui.yesNoDialog("Unable to process %s" % evidence_file, "Would you like to skip this file?") 
+
+        if cont:
+            return -1
+        else:
+            gui_ref.gui.msgBox("Unable to process evidence file %s. Exiting." % evidence_file)
+            raise RegAcquireError(evidence_file)
+    
     # this gathers the evidence from input files for second stange processing
     def acquire_from_file(self, evidence_file, gui_ref):
 
@@ -146,15 +156,9 @@ class acquire_files:
             evidence_type = self.determine_type_sig(evidence_file)
 
         if evidence_type[0] == UNKNOWN:
-           
-            cont = gui_ref.gui.yesNoDialog("Unable to process %s" % evidence_file, "Would you like to skip this file?") 
-
-            if cont:
-                evidence_type = -1  
-            else:
-                gui_ref.gui.msgBox("Unable to process evidence file %s. Exiting." % evidence_file)
-                raise RegAcquireError(evidence_file)
-
+        
+            evidence_type = self.continuebox(evidence_file, gui_ref)
+  
         elif evidence_type[0] == DD:
             # pytsk3
             ac = aqfile.acquire_files(gui_ref.directory, gui_ref)
@@ -167,7 +171,11 @@ class acquire_files:
                 acq_current = gui_ref.gui.acquire_current
                 acq_backup  = gui_ref.gui.acquire_backups
 
-            ac.acquire_files(evidence_file, acq_current, acq_backup)
+            # this hits on a broken filesystem
+            try:
+                ac.acquire_files(evidence_file, acq_current, acq_backup)
+            except:
+                evidence_type = self.continuebox(evidence_file, gui_ref)                    
 
         elif evidence_type[0] == SINGLEFILE:
             self.add_single_file(evidence_file, evidence_type[1], gui_ref)            

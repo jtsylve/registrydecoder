@@ -390,7 +390,7 @@ def get_reg_fileids(self, treename):
 
     return ret
 
-def get_path_popup(self, userpath):
+def get_tree_node(self, userpath=""):
 
     ret = None
 
@@ -411,17 +411,14 @@ def get_path_popup(self, userpath):
         if path[-1] == "\\":
             path = path[:-1]
 
-        ret = unicode(self.tapi.get_path(path))
+        fullpath = unicode(self.tapi.get_path(path))
+
+        ret = get_path_node(self, fullpath)
 
     return ret
 
-def get_tree_node(self, userpath=""):
+def get_path_node(self, path):
         
-    path = get_path_popup(self, userpath)
-
-    if not path:
-        return None
-    
     nodes = self.tapi.root_path_node(path)     
 
     if nodes:
@@ -667,7 +664,7 @@ class action_handler:
                 bad = 1
                 break
      
-        if not bad:
+        if not bad and index:
             tree.setCurrentIndex(index)
         else:
             self.ref_obj.gui.msgBox("The given path could not be found in the tree.")    

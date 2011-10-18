@@ -125,7 +125,8 @@ class evidence_database:
             evidence_type = self.guess_type(hive_name)
 
         if not evidence_type and hive_name:
-            raise MsgBoxError("Couldnt find type for %s -> %s" % (hive_name, fullpath))
+            print "Couldnt find type for %s -> %s" % (hive_name, fullpath)
+            #raise MsgBoxError("Couldnt find type for %s -> %s" % (hive_name, fullpath))
 
         return (md5, mtime, evidence_type)
         

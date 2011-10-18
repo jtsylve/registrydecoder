@@ -312,12 +312,6 @@ class searchtab:
  
         return node
 
-    def get_tree_node(self):
-            
-        node  = self.get_current_row_node()
-
-        return node
-
     # gets all the search hits into a list of searchmatch objects
     def get_search_hits(self, searchterm, partialsearch, searchKeys, searchNames, searchData):
         
