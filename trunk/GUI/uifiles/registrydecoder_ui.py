@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'GUI/uifiles/registrydecoder.ui'
 #
-# Created: Wed Oct 12 17:08:11 2011
+# Created: Wed Oct 19 15:58:46 2011
 #      by: PyQt4 UI code generator 4.7.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -426,6 +426,7 @@ class Ui_registrydecoder(object):
         self.gridLayout_24 = QtGui.QGridLayout()
         self.gridLayout_24.setObjectName("gridLayout_24")
         self.pathAnalysisTreeWidget = QtGui.QTreeWidget(self.pathAnalysisTab)
+        self.pathAnalysisTreeWidget.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.pathAnalysisTreeWidget.setObjectName("pathAnalysisTreeWidget")
         self.gridLayout_24.addWidget(self.pathAnalysisTreeWidget, 0, 0, 3, 1)
         spacerItem29 = QtGui.QSpacerItem(538, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
@@ -490,6 +491,7 @@ class Ui_registrydecoder(object):
         self.gridLayout_27 = QtGui.QGridLayout()
         self.gridLayout_27.setObjectName("gridLayout_27")
         self.timelineTreeWidget = QtGui.QTreeWidget(self.timelineTab)
+        self.timelineTreeWidget.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.timelineTreeWidget.setObjectName("timelineTreeWidget")
         self.gridLayout_27.addWidget(self.timelineTreeWidget, 0, 0, 3, 1)
         spacerItem33 = QtGui.QSpacerItem(498, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)

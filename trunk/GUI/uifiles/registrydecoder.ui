@@ -1095,6 +1095,9 @@
              <layout class="QGridLayout" name="gridLayout_24">
               <item row="0" column="0" rowspan="3">
                <widget class="QTreeWidget" name="pathAnalysisTreeWidget">
+                <property name="selectionMode">
+                 <enum>QAbstractItemView::ExtendedSelection</enum>
+                </property>
                 <column>
                  <property name="text">
                   <string>Registry Files</string>
@@ -1258,6 +1261,9 @@
              <layout class="QGridLayout" name="gridLayout_27">
               <item row="0" column="0" rowspan="3">
                <widget class="QTreeWidget" name="timelineTreeWidget">
+                <property name="selectionMode">
+                 <enum>QAbstractItemView::ExtendedSelection</enum>
+                </property>
                 <column>
                  <property name="text">
                   <string>Registry Files</string>
