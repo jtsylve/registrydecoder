@@ -101,16 +101,16 @@ class timelinetab:
                 if sp.startDate or sp.endDate:
                     res = self.gcommon.filter_results(self, [node], fileid, sp.startDate, sp.endDate)
                 else:
-                    ret = [1]
+                    res = [1]
 
                 if len(res) == 1:
 
                     path      = self.tapi.full_path_node_to_root(node)
                     lastwrite = node.timestamps[fileid] 
-                    lastwrite = datetime.datetime.fromtimestamp(lastwrite).strftime('%Y/%m/%d %H:%M:%S UTC')
+                    #lastwrite = datetime.datetime.fromtimestamp(lastwrite).strftime('%Y/%m/%d %H:%M:%S UTC')
 
                     # taken from regtime.pl
-                    sp.fd.write("0|%s:%s|0|0|0|0|0|0|%s|0|0\n" % (filepath, path, lastwrite))
+                    sp.fd.write("0|%s:%s|0|0|0|0|0|0|%d|0|0\n" % (filepath, path, lastwrite))
 
     # called when 'timeline' is clicked
     def viewTree(self):
