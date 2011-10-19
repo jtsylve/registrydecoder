@@ -179,12 +179,13 @@ def get_ename(efile, alias):
 
     return ename
 
-def fill_tree(gui, tree_name):
+def fill_tree(gui, tree_name, draw=1):
 
     # PERFORMANCE cache root
     (fileinfo_hash, root) = do_fill_tree(gui)
 
-    do_draw_tree(gui, tree_name, root)
+    if draw:
+        do_draw_tree(gui, tree_name, root)
 
     return fileinfo_hash
 
@@ -461,17 +462,19 @@ def run_cb_on_tree(self, cb, sp, tree_name, max_allowed=-1):
 
     return results
 
-def get_file_info(fhash, fileid):
+def get_file_info(fhash, fileid, extra=0):
 
     finfo = fhash[fileid]
 
     filepath   = finfo.reg_file
+    regfile   = finfo.reg_file
     alias      = finfo.alias
     evi_file   = finfo.evidence_file
     group_name = finfo.group_name
     part_num   = finfo.part_num
     type_name  = finfo.type_name
     rpname     = finfo.rp_name    
+
 
     if group_name != "SINGLE":
 
@@ -482,12 +485,20 @@ def get_file_info(fhash, fileid):
 
         filepath = "%s in %s from %s" % (filepath, group_info, evi_file)
 
+    else:
+        group_info = group_name
+
     # if an alias was given
     if len(alias) and evi_file != alias:
         filepath = filepath + " ( %s )" % alias
-
-    return (filepath, evi_file, group_name)
     
+    if extra:
+        ret = (evi_file, group_info, alias, regfile)
+    else:
+        ret = (filepath, evi_file, group_name)
+
+    return ret
+
 def diffBoxClicked(self, isChecked, tree_name):      
        
     widget = self.gui.__getattribute__(tree_name)

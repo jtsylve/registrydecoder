@@ -62,55 +62,6 @@ class opencase:
 
         return ret
 
-    def fill_fileid_hash(self):
-
-        self.fileid_hash = {}
-
-        self.evidencedb.cursor.execute(
-        "select a.filename, a.file_alias, b.number, c.group_name, d.type_name, d.id from " +
-        "evidence_sources as a, partitions as b, file_groups as c, reg_type as d " +
-        "where a.id=b.evidence_file_id and b.id=c.partition_id and c.id=d.file_group_id" )
-
-        results = self.evidencedb.cursor.fetchall()
-
-        # all the data before dealing with RPs
-        for (evidence_file, file_alias, part_num, group_name, type_name, type_id) in results:
-        
-            # non-rp image files
-            self.evidencedb.cursor.execute("select filename,id from registry_files where reg_type_id=? and hive_type=0", [type_id])
-            files = self.evidencedb.cursor.fetchall() 
-
-            for (registry_file,fileid) in files:
-
-                self.fileid_hash[fileid] = fileinfo(evidence_file, file_alias, part_num, group_name, type_name, registry_file) 
-
-            # rp image files 
-            self.evidencedb.cursor.execute("select rpname, id from rp_groups")
-            rps = self.evidencedb.cursor.fetchall()
-
-            for (rpname, rid) in rps: 
-                
-                self.evidencedb.cursor.execute("select filename,id from registry_files where reg_type_id=? and hive_type=1", [rid]) 
-           
-                files = self.evidencedb.cursor.fetchall()
-
-                for (registry_file,fileid) in files:
-
-                    self.fileid_hash[fileid] = fileinfo(evidence_file, file_alias, part_num, group_name, type_name, registry_file, rpname)
-
-        # indivinial files
-        cursor = self.evidencedb.cursor
-
-        cursor.execute("select g.id, e.filename, e.file_alias from file_groups as g, evidence_sources as e where g.group_name='SINGLE' and e.id=g.partition_id")
-
-        for (gid, evidence_file, alias) in cursor.fetchall():
-
-            cursor.execute("select id, registry_type, md5sum, mtime from registry_files where hive_type=-1 and reg_type_id=?", [gid])
-
-            for (efileid, rtype, md5sum, mtime) in cursor.fetchall():
-
-                self.fileid_hash[efileid] = fileinfo(evidence_file, alias, -1, "SINGLE", "SINGLE_TYPE", evidence_file)
-
     def opencaseobj(self):
         filename = os.path.join(self.directory,"caseobj.pickle")
         fd = open(filename,"rb")
@@ -131,7 +82,6 @@ class opencase:
         self.tree    = obj.tree
         self.tree.db = self.treenodedb 
 
-        self.fill_fileid_hash()
         obj.stringtable.precache_values()
         
         self.stringtable    = obj.stringtable

@@ -24,6 +24,8 @@
 #
 import os, sys, time, codecs
 
+import GUI.guicommon as gcommon
+
 # just here to tag members on
 class o:
     pass
@@ -38,22 +40,19 @@ class header_info:
         self.extras        = extras
         self.fileid        = fileid
 
-def get_hinfo_list(hinfo, case_obj):
+def get_hinfo_list(hinfo, gui):
+
+    case_obj = gui.case_obj
 
     # header list
     hl = ["Evidence File", "Evidence Alias", "Registry File Group", "Registry File", "Analysis Type", hinfo.col_info]
 
-    hf = case_obj.fileid_hash[hinfo.fileid]
+    fhash = gcommon.fill_tree(gui, "", 0)
 
-    (evi_file, alias, part_num, group_name, type_name, reg_file, rpname) = (hf.evidence_file, hf.file_alias, hf.part_num, hf.group_name, hf.type_name, hf.registry_file, hf.rpname)
+    (evi_file, group_info, alias, reg_file) = gcommon.get_file_info(fhash, hinfo.fileid, 1)
 
-    if group_name == "SINGLE":
-        group_info = group_name
-    else:
-        group_info = "Partition %s | %s | %s" % (part_num, group_name, type_name)
-    
-    if rpname:
-        group_info = group_info + " | " + rpname
+    if alias == evi_file:
+        alias = ""
 
     ret = [(hl[0], evi_file),
            (hl[1], alias),
@@ -147,7 +146,7 @@ def report_single(report, filename, tab, cinfo=True):
 
     (header_list, rdata, rows_max, cols_max) = get_report_info(tab)
     
-    hinfo_list = get_hinfo_list(hinfo, report.gui.case_obj)
+    hinfo_list = get_hinfo_list(hinfo, report.gui)
 
     # start output, set variables
     report.set_file(filename)
