@@ -22,7 +22,7 @@ plugins = plugins + Tree(os.path.join(projpath, 'templates', 'template_files'), 
 
 exe = EXE(pyz,
           a.scripts,
-          a.binaries + [('libewf.dll', 'C:\\libewf.dll', 'BINARY')],
+          a.binaries + [('libewf.dll', 'C:\\libewf.dll', 'BINARY')] + [('zlib1.dll', 'C:\\zlib1.dll', 'BINARY')],
           a.zipfiles,
           a.datas,
           plugins,
