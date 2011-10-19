@@ -9,23 +9,6 @@ def get_plugins(list):
         elif item[0].startswith('reporting.report_formats') and not (item[0] == 'reporting.report_formats' and '__init__.py' in item[1]):
             yield item
 
-'''
-def remove_pyc_svn(list):
-
-    fd = open("C:/users/a/desktop/remove.txt", "a+")
-    for item in list:
-    
-        if item[0].find(".svn") != -1 or item[1].find(".svn") != -1:
-            fd.write("--%s\n" % str(item))
-            yield item
-            
-        elif item[0].endswith(".pyc") != -1 and item[1].find("regdecoder") != -1:
-            fd.write("%s\n" % str(item))
-            yield item
-            
-    fd.close()
-'''
-  
 exeext = ".exe" if 'win' in sys.platform else ""
 
 a = Analysis([os.path.join(HOMEPATH,'support\\_mountzlib.py'), os.path.join(CONFIGDIR,'support\\useUnicode.py'),  os.path.join(projpath, 'guimain.py')],
@@ -39,7 +22,7 @@ plugins = plugins + Tree(os.path.join(projpath, 'templates', 'template_files'), 
 
 exe = EXE(pyz,
           a.scripts,
-          a.binaries,
+          a.binaries + [('libewf.dll', 'C:\\libewf.dll', 'BINARY')],
           a.zipfiles,
           a.datas,
           plugins,
