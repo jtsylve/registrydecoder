@@ -28,8 +28,7 @@
 
 pluginname = "Shell Bags"
 description = ""
-hive = "NTUSER" # "USRCLASS"
-#hives = ['NTUSER', 'USRCLASS'] 
+hives = ['NTUSER', 'USRCLASS'] 
 documentation = ""
 
 def run_me():
