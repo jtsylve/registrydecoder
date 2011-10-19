@@ -197,6 +197,10 @@ class case_processing:
     
             i = i + 1
 
+        self.acquire_files.cursor.close()
+        self.acquire_files.cursor = None
+        self.acquire_files.conn   = None
+
         # remove files that could not be processed
         gui_ref.evidence_list = [item for idx,item in enumerate(gui_ref.evidence_list) if idx not in skip_indexes]
 

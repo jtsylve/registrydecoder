@@ -539,8 +539,7 @@ class acquire_files:
                 self.acquire_backup_files(fs)
 
             self.conn.commit()    
-
-
+    
 def main():
 
     current = 1
