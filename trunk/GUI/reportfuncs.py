@@ -52,7 +52,7 @@ class report_handler:
             tab_info    = self.active_tabs[dataTab]
         except:
             # ugly hack b/c we add things last minute x)
-            act_tabs = dict(self.gui.plugintab.rh.active_tabs.items() + self.gui.searchtab.rh.active_tabs.items())
+            act_tabs = dict(self.gui.plugintab.rh.active_tabs.items() + self.gui.searchtab.rh.active_tabs.items() + self.gui.pathtab.rh.active_tabs.items())
             tab_info = act_tabs[dataTab]
             
         report   = self.get_plugin_export_format(finfoTab.cbox)
