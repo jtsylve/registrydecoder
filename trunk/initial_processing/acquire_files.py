@@ -37,6 +37,7 @@ class acquire_files:
     def __init__(self):
         self.singlefilecounter = 0
         self.reg_sig = registry_sig.registry_sig()
+        self.ac = None
 
     def add_single_file(self, evidence_file, evidence_type, gui_ref):
 
@@ -161,7 +162,7 @@ class acquire_files:
   
         elif evidence_type[0] == DD:
             # pytsk3
-            ac = aqfile.acquire_files(gui_ref.directory, gui_ref)
+            self.ac = aqfile.acquire_files(gui_ref.directory, gui_ref)
             
             # command line
             if not hasattr(gui_ref, "gui"):
@@ -173,7 +174,7 @@ class acquire_files:
 
             # this hits on a broken filesystem
             try:
-                ac.acquire_files(evidence_file, acq_current, acq_backup)
+                self.ac.acquire_files(evidence_file, acq_current, acq_backup)
             except:
                 evidence_type = self.continuebox(evidence_file, gui_ref)                    
 
@@ -185,7 +186,6 @@ class acquire_files:
             fd = open(os.path.join(gui_ref.directory, "registryfiles", "rdb-files.txt"), "a+")            
             fd.write(evidence_file + "\n")
             fd.close() 
-
 
         return evidence_type
 

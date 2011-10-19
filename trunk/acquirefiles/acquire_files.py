@@ -49,9 +49,9 @@ class acquire_files:
         except:
             pass
 
-        self.db_ops(case_dir)      
+        self.db_ops()      
 
-    def db_ops(self, case_dir):
+    def db_ops(self):
  
         (self.conn, self.cursor) = common.connect_db(self.store_dir, "acquire_files.db")
         
