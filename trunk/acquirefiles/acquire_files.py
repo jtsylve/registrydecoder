@@ -459,8 +459,13 @@ class acquire_files:
            
             # we need to grab all the files of type this
             files = self.get_names(filepath, self.is_e01file)
-           
-            img = EWFImgInfo(*files)
+          
+            try: 
+                img = EWFImgInfo(*files)
+
+            except Exception, e:
+                print "BUG: Couldnt create EWFImgInfo: %s" % str(e)
+                
 
         # split
         elif self.is_splitfile(filepath):
@@ -485,6 +490,7 @@ class acquire_files:
             # volume info (partitions) 
             volinfo = pytsk3.Volume_Info(img)
         except Exception, e:
+            print "BUG: Couldnt create vol_info: %s" % str(e)
             return [(0, 0)]
 
         block_size = volinfo.info.block_size
