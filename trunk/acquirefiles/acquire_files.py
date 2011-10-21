@@ -467,6 +467,8 @@ class acquire_files:
                 print "BUG: Couldnt create EWFImgInfo: %s" % str(e)
                 
 
+            print "img is %s" % str(img)
+
         # split
         elif self.is_splitfile(filepath):
 
