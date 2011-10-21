@@ -175,7 +175,8 @@ class acquire_files:
             # this hits on a broken filesystem
             try:
                 self.ac.acquire_files(evidence_file, acq_current, acq_backup)
-            except:
+            except Exception, e:
+                print "BUG! when attempting to acquire files: %s" % str(e)
                 evidence_type = self.continuebox(evidence_file, gui_ref)                    
 
         elif evidence_type[0] == SINGLEFILE:
