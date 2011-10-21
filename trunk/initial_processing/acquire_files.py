@@ -31,6 +31,7 @@ import shutil, sys, re, os
 
 import pytsk3
 import ewf
+import traceback
 
 class acquire_files:
 
@@ -177,6 +178,7 @@ class acquire_files:
                 self.ac.acquire_files(evidence_file, acq_current, acq_backup)
             except Exception, e:
                 print "BUG! when attempting to acquire files: %s" % str(e)
+                traceback.print_exc(file=sys.stdout)
                 evidence_type = self.continuebox(evidence_file, gui_ref)                    
 
         elif evidence_type[0] == SINGLEFILE:

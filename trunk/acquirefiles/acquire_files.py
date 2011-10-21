@@ -362,7 +362,6 @@ class acquire_files:
 
     def handle_sys_restore(self, fs):
 
-
         directory = fs.open_dir("System Volume Information")
 
         # this will hit restore files for XP
