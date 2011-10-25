@@ -22,7 +22,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
 #
-# TODO: UsrClass.DAT files
 #
 # Kevin Moore - CERT - kevinm@cert.org
 
@@ -358,43 +357,43 @@ def run_me():
     all_bags = []
     
     # NTUSER Registry Files
-    if hive == 'NTUSER':
+    #if hive == 'NTUSER':
         
-        # ShellNoRoam    
-        if path_exists(root_key() + "\Software\Microsoft\Windows\ShellNoRoam\Bags"):
-            
-            regkey = reg_get_required_key("\Software\Microsoft\Windows\ShellNoRoam\Bags")
-            subkeys = reg_get_subkeys(regkey)
-            bags = get_bag_entries(subkeys, "\Software\Microsoft\Windows\ShellNoRoam\Bags")
-            all_bags.extend(bags)
+    # ShellNoRoam    
+    if path_exists(root_key() + "\Software\Microsoft\Windows\ShellNoRoam\Bags"):
         
-        # Shell
-        if path_exists(root_key() + "\Software\Microsoft\Windows\Shell\Bags"):
-            
-            regkey = reg_get_required_key("\Software\Microsoft\Windows\Shell\Bags")
-            subkeys = reg_get_subkeys(regkey)
-            bags = get_bag_entries(subkeys, "\Software\Microsoft\Windows\Shell\Bags")
-            all_bags.extend(bags)
+        regkey = reg_get_required_key("\Software\Microsoft\Windows\ShellNoRoam\Bags")
+        subkeys = reg_get_subkeys(regkey)
+        bags = get_bag_entries(subkeys, "\Software\Microsoft\Windows\ShellNoRoam\Bags")
+        all_bags.extend(bags)
+    
+    # Shell
+    if path_exists(root_key() + "\Software\Microsoft\Windows\Shell\Bags"):
+        
+        regkey = reg_get_required_key("\Software\Microsoft\Windows\Shell\Bags")
+        subkeys = reg_get_subkeys(regkey)
+        bags = get_bag_entries(subkeys, "\Software\Microsoft\Windows\Shell\Bags")
+        all_bags.extend(bags)
     
     # END NTUSER Processing
     
     # USRClass Registry Files        
-    else: # hive == 'USRCLASS'
+    #else: # hive == 'USRCLASS'
         
-        # Non Wow64
-        if path_exists(root_key() + "\Local Settings\Software\Microsoft\Windows\shell\Bags"):                    # Check path exists
-        
-            regkey = reg_get_required_key("\Local Settings\Software\Microsoft\Windows\shell\Bags")
-            subkeys = reg_get_subkeys(regkey)
-            bags = get_bag_entries(subkeys, "\Local Settings\Software\Microsoft\Windows\shell\Bags")             # Processes Subkeys for ShellBags Entries
-            all_bags.extend(bags)
-        
-        # Wow64 Entries - 64-bit systems
-        if path_exists(root_key() + "\Wow6432Node\Local Settings\Software\Microsoft\Windows\shell\Bags"):        # Check path exists
-            regkey = reg_get_required_key("\Wow6432Node\Local Settings\Software\Microsoft\Windows\shell\Bags")
-            subkeys = reg_get_subkeys(regkey)
-            bags = get_bag_entries(subkeys, "\Wow6432Node\Local Settings\Software\Microsoft\Windows\shell\Bags") # Processes Subkeys for ShellBags Entries
-            all_bags.extend(bags)
+    # Non Wow64
+    if path_exists(root_key() + "\Local Settings\Software\Microsoft\Windows\shell\Bags"):                    # Check path exists
+    
+        regkey = reg_get_required_key("\Local Settings\Software\Microsoft\Windows\shell\Bags")
+        subkeys = reg_get_subkeys(regkey)
+        bags = get_bag_entries(subkeys, "\Local Settings\Software\Microsoft\Windows\shell\Bags")             # Processes Subkeys for ShellBags Entries
+        all_bags.extend(bags)
+    
+    # Wow64 Entries - 64-bit systems
+    if path_exists(root_key() + "\Wow6432Node\Local Settings\Software\Microsoft\Windows\shell\Bags"):        # Check path exists
+        regkey = reg_get_required_key("\Wow6432Node\Local Settings\Software\Microsoft\Windows\shell\Bags")
+        subkeys = reg_get_subkeys(regkey)
+        bags = get_bag_entries(subkeys, "\Wow6432Node\Local Settings\Software\Microsoft\Windows\shell\Bags") # Processes Subkeys for ShellBags Entries
+        all_bags.extend(bags)
             
     # END USRClass processing
 

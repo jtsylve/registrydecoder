@@ -438,49 +438,49 @@ def run_me():
     parsed_mru_values = []
     
     # NTUSER Registry Files
-    if hive == 'NTUSER':
+    #if hive == 'NTUSER':
         
-        # ShellNoRoam
-        if path_exists(root_key() + "\Software\Microsoft\Windows\ShellNoRoam\BagMRU"):             # Check path exists - usually doesn't in Win7/Vista NTUSER
-             
-            regkey = reg_get_required_key("\Software\Microsoft\Windows\ShellNoRoam\BagMRU")        # Checks for Registry Key ShellNoRoam\BagMRU
-            subkeys = reg_get_subkeys(regkey)                                                      # Gets Subkeys
-            MRU_keys = list_all_mru_keys(subkeys, "\Software\Microsoft\Windows\ShellNoRoam\BagMRU")# Gathers List of Usable BagMRU values
-            parsed_vals = process_bagmru_entries(MRU_keys)                                         # Processes List of BagMRU Entries for content
-            parsed_mru_values.extend(parsed_vals)                                                  # Building List for Report
-        
-        # Shell
-        if path_exists(root_key() + "\Software\Microsoft\Windows\Shell\BagMRU"):                   # Check path exists
-              
-            regkey = reg_get_required_key("\Software\Microsoft\Windows\Shell\BagMRU")              # Checks for Registry Key Shell\BagMRU
-            subkeys = reg_get_subkeys(regkey)                                                      # Gets Subkeys
-            MRU_keys = list_all_mru_keys(subkeys, "\Software\Microsoft\Windows\Shell\BagMRU")      # Gathers List of Usable BagMRU values
-            parsed_vals = process_bagmru_entries(MRU_keys)                                         # Processes List of BagMRU Entries for content                 
-            parsed_mru_values.extend(parsed_vals)                                                  # Building List for Report
+    # ShellNoRoam
+    if path_exists(root_key() + "\Software\Microsoft\Windows\ShellNoRoam\BagMRU"):             # Check path exists - usually doesn't in Win7/Vista NTUSER
+         
+        regkey = reg_get_required_key("\Software\Microsoft\Windows\ShellNoRoam\BagMRU")        # Checks for Registry Key ShellNoRoam\BagMRU
+        subkeys = reg_get_subkeys(regkey)                                                      # Gets Subkeys
+        MRU_keys = list_all_mru_keys(subkeys, "\Software\Microsoft\Windows\ShellNoRoam\BagMRU")# Gathers List of Usable BagMRU values
+        parsed_vals = process_bagmru_entries(MRU_keys)                                         # Processes List of BagMRU Entries for content
+        parsed_mru_values.extend(parsed_vals)                                                  # Building List for Report
+    
+    # Shell
+    if path_exists(root_key() + "\Software\Microsoft\Windows\Shell\BagMRU"):                   # Check path exists
+          
+        regkey = reg_get_required_key("\Software\Microsoft\Windows\Shell\BagMRU")              # Checks for Registry Key Shell\BagMRU
+        subkeys = reg_get_subkeys(regkey)                                                      # Gets Subkeys
+        MRU_keys = list_all_mru_keys(subkeys, "\Software\Microsoft\Windows\Shell\BagMRU")      # Gathers List of Usable BagMRU values
+        parsed_vals = process_bagmru_entries(MRU_keys)                                         # Processes List of BagMRU Entries for content                 
+        parsed_mru_values.extend(parsed_vals)                                                  # Building List for Report
     #END if hive == 'NTUSER'
     
     # USRClass registry files        
-    else:    # hive == 'USRCLASS'
+    #else:    # hive == 'USRCLASS'
         
-        # Shell
-        if path_exists(root_key() + '\Local Settings\Software\Microsoft\Windows\shell\BagMRU'):               # Check path exists
-             
-            regkey = reg_get_required_key('\Local Settings\Software\Microsoft\Windows\shell\BagMRU')          # Checks for Registry Key ShellNoRoam\BagMRU
-            subkeys = reg_get_subkeys(regkey)                                                                 # Gets Subkeys
-            MRU_keys = list_all_mru_keys(subkeys, '\Local Settings\Software\Microsoft\Windows\shell\BagMRU')  # Gathers List of Usable BagMRU values
-            parsed_vals = process_bagmru_entries(MRU_keys)                                                    # Processes List of BagMRU Entries for content
-            parsed_mru_values.extend(parsed_vals)                                                             # Building List for Report
-        
-        # Wow6432Node
-        if path_exists(root_key() + '\Wow6432Node\Local Settings\Software\Microsoft\Windows\shell\BagMRU'):       # Check path exists - must be 64-bit machine
-             
-            regkey = reg_get_required_key('\Wow6432Node\Local Settings\Software\Microsoft\Windows\shell\BagMRU')  # Checks for Registry Key ShellNoRoam\BagMRU
-            subkeys = reg_get_subkeys(regkey)                                                                     # Gets Subkeys
-            MRU_keys = list_all_mru_keys(subkeys, '\Wow6432Node\Local Settings\Software\Microsoft\Windows\shell\BagMRU') # Gathers List of Usable BagMRU values
-            parsed_vals = process_bagmru_entries(MRU_keys)                                                        # Processes List of BagMRU Entries for content
-            parsed_mru_values.extend(parsed_vals)                                                                 # Building List for Report
+    # Shell
+    if path_exists(root_key() + '\Local Settings\Software\Microsoft\Windows\shell\BagMRU'):               # Check path exists
+         
+        regkey = reg_get_required_key('\Local Settings\Software\Microsoft\Windows\shell\BagMRU')          # Checks for Registry Key ShellNoRoam\BagMRU
+        subkeys = reg_get_subkeys(regkey)                                                                 # Gets Subkeys
+        MRU_keys = list_all_mru_keys(subkeys, '\Local Settings\Software\Microsoft\Windows\shell\BagMRU')  # Gathers List of Usable BagMRU values
+        parsed_vals = process_bagmru_entries(MRU_keys)                                                    # Processes List of BagMRU Entries for content
+        parsed_mru_values.extend(parsed_vals)                                                             # Building List for Report
     
-    # END Else hive == 'USRCLASS'
+    # Wow6432Node
+    if path_exists(root_key() + '\Wow6432Node\Local Settings\Software\Microsoft\Windows\shell\BagMRU'):       # Check path exists - must be 64-bit machine
+         
+        regkey = reg_get_required_key('\Wow6432Node\Local Settings\Software\Microsoft\Windows\shell\BagMRU')  # Checks for Registry Key ShellNoRoam\BagMRU
+        subkeys = reg_get_subkeys(regkey)                                                                     # Gets Subkeys
+        MRU_keys = list_all_mru_keys(subkeys, '\Wow6432Node\Local Settings\Software\Microsoft\Windows\shell\BagMRU') # Gathers List of Usable BagMRU values
+        parsed_vals = process_bagmru_entries(MRU_keys)                                                        # Processes List of BagMRU Entries for content
+        parsed_mru_values.extend(parsed_vals)                                                                 # Building List for Report
+
+# END Else hive == 'USRCLASS'
  
     print_report(parsed_mru_values)                       # Printing Report of MRU Values
     
