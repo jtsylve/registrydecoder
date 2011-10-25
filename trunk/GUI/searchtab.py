@@ -198,7 +198,7 @@ class searchtab:
 
     def setup_menu(self, widget):
 
-        self.act_handlers[widget] = self.gcommon.action_handler(self, widget, "Switch to File View", 1)
+        self.act_handlers[widget] = self.gcommon.action_handler(self, widget, "Switch to File View", 1, 1)
 
         self.act_handlers[widget].setup_menu()        
 
@@ -295,22 +295,6 @@ class searchtab:
         row = table.currentRow()        
 
         table.removeRow(row)       
-
-    def get_current_row_node(self):
-    
-        curtab = self.gui.analysisTabWidget.currentWidget()
-        
-        self.gui.case_obj.current_fileid = curtab.fileid
-
-        table  = curtab.searchResTable
-
-        row    = table.currentItem()
-   
-        fullpath   = unicode(row.text())
-
-        node = self.tapi.root_path_node(fullpath)[-1]
- 
-        return node
 
     # gets all the search hits into a list of searchmatch objects
     def get_search_hits(self, searchterm, partialsearch, searchKeys, searchNames, searchData):

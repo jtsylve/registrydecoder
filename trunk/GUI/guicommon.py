@@ -22,12 +22,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
 #
-import sys, os, sqlite3, datetime
+import sys, os, datetime
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtNetwork import *
 
+from errorclasses import *
 
 # the forms...
 # DO NOT CHANGE THESE WITHOUT TELLING ANDREW
@@ -597,6 +598,7 @@ def get_search_terms(gui, place="search"):
     return (searchterms, filename)
 
 
+
 ########################################## 
 #     right click menu stuff             #
 ##########################################
@@ -604,17 +606,37 @@ def get_search_terms(gui, place="search"):
 
 class action_handler:
 
-    def __init__(self, ref_obj, widget, message, error_no_path):
+    def __init__(self, ref_obj, widget, message, error_no_path, provides_path=0):
 
         self.ref_obj = ref_obj
         self.widget  = widget
         self.message = message
+        self.provides_path = provides_path
     
         # this controls whether to break if path is not found
         # right clicking from file view means its broken
         # searching a path could not be there...
         self.error_no_path = error_no_path
  
+    def get_current_row_node(self):
+        
+        curtab = self.ref_obj.gui.analysisTabWidget.currentWidget()
+        
+        self.ref_obj.gui.case_obj.current_fileid = curtab.fileid
+
+        table      = curtab.searchResTable
+
+        row        = table.currentRow()
+
+        # get the key column no matter which the user picked
+        item       = table.item(row, 1)
+
+        fullpath   = unicode(item.text())
+
+        node = self.ref_obj.tapi.root_path_node(fullpath)[-1]
+
+        return node
+
     def setup_menu(self):
 
         self.widget.setContextMenuPolicy( Qt.CustomContextMenu )
@@ -637,8 +659,11 @@ class action_handler:
     # this is really ugly
     # sets a tree to a position based on a search hit
     def on_action_fileview(self):
-   
-        node = get_tree_node(self.ref_obj)     
+  
+        if self.provides_path == 1:
+            node = self.get_current_row_node()
+        else:
+            node = get_tree_node(self.ref_obj)     
 
         if not node:
             if self.error_no_path == 1:
