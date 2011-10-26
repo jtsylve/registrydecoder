@@ -112,6 +112,11 @@ class report_handler:
             return
 
         extabs     = currentTab.active_tabs
+
+        # bulk export
+        if not extabs:
+            extabs = dict(self.gui.searchtab.active_tabs.items() + self.gui.plugintab.active_tabs.items() + self.gui.pathtab.active_tabs.items())
+
         report     = self.get_plugin_export_format(currentTab.cbox)
 
         i = 0
