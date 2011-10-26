@@ -107,7 +107,7 @@ class report_handler:
     
         currentTab = self.gui.analysisTabWidget.currentWidget() 
         
-        if not hasattr(currentTab, "active_tabs") or len(currentTab.active_tabs) == 0: 
+        if not hasattr(currentTab, "active_tabs") or (currentTab and len(currentTab.active_tabs) == 0): 
             self.gui.msgBox("Export All clicked when no tabs were active")
             return
 
