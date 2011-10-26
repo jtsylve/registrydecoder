@@ -70,64 +70,59 @@ def run_me():
         key_path += "\%s" % key_name                 # ClassID
         
         skey = reg_get_required_key(key_path)
-        bho_data = bho.set_data(key_name, key_path, get_last_write_time(skey))
+        bho.set_data(key_name, key_path, get_last_write_time(skey))
         
-        return bho_data
+        return bho
     
     # ENDFUNCTION - parse_bho
     
     def parse_bho_class_ids(bhos):
         
         # Parses Data in \Classes\CLSID section of Software Hive for more detailed BHO information
-        
+        key_path = '\Classes\CLSID'
+        class_key = reg_get_required_key(key_path)
+        subkeys = reg_get_subkeys(class_key)
+    
+        keynames = {}
+
+        for key in subkeys:
+
+            keynames[reg_get_key_name(key)] = key            
+ 
         for bho in bhos:
             
             key_path = '\Classes\CLSID'
-            class_key = reg_get_required_key(key_path)
-            subkeys = reg_get_subkeys(class_key)
             
-            for key in subkeys:
+           # Parses each key value under \Classes\CLSID to see if it matches the ClassID of a BHO identified
+            if bho.ID in keynames:
                 
-                # Parses each key value under \Classes\CLSID to see if it matches the ClassID of a BHO identified
-                if bho.ID == reg_get_key_name(key):
+                key_path += '\%s' % bho.ID
+                regkey = reg_get_required_key(key_path)
+                
+                valstr = get_value_for_node_name(regkey, "NONE")
+                
+                if valstr: 
+                    bho.subvalue = valstr
                     
-                    key_path += '\%s' % bho.ID
-                    regkey = reg_get_required_key(key_path)
+                new_subkeys = reg_get_subkeys(regkey)  
+                
+                for sub in new_subkeys:
                     
-                    values = reg_get_values(regkey)
+                    # Parsing Subkeys under ClassID
+                    name = reg_get_key_name(sub)
                     
-                    for val in values:
+                    if name.find('InprocServer32') == 0:            # Subvalue in InprocServer32 contains fullpath to BHO payload
                         
-                        name = reg_get_value_name(val)
-                        if name.find('NONE') == 0:                       # Value with name 'NONE' contains Friendly BHO name
-                            bho.subvalue = reg_get_value_data(val)       # In EnCase and FTK Registry viewer this is listed as '(default)'
-                            
-                    new_subkeys = reg_get_subkeys(regkey)  
-                    
-                    for sub in new_subkeys:
+                        key_path += '\%s' % name
+                        regkey = reg_get_required_key(key_path)
                         
-                        # Parsing Subkeys under ClassID
-                        
-                        name = reg_get_key_name(sub)
-                        
-                        if name.find('InprocServer32') == 0:            # Subvalue in InprocServer32 contains fullpath to BHO payload
-                            
-                            key_path += '\%s' % name
-                            regkey = reg_get_required_key(key_path)
-                            sub_values = reg_get_values(regkey)
-                            
-                            for s in sub_values:
-                                
-                                name = reg_get_value_name(s)
-                                if name.find('NONE') == 0:             # Registry Entry with value 'NONE' contains fullpath to BHO payload
-                                    bho.value = reg_get_value_data(s)  # In EnCase and FTK Registry viewer this is listed as '(default)'
-                            
-                            # ENDFOR - subvalues
-                        # ENDIF name.find('InprocServer32') == 0
-                    #END FOR - new_subkeys
-                # ENDIF - bho.ID == reg_get_key_name(key)
-            # END FOR - subkeys
-        # END FOR - bhos
+                        valstr = get_value_for_node_name(regkey, "NONE")
+
+                        if valstr:
+
+                            bho.value = valstr
+                            break
+
     #ENDFUNCTION - parse_bho_class_ids
                                     
     def print_report(bhos):
@@ -161,7 +156,8 @@ def run_me():
         
     else:
         reg_report(('Path to Browser Helper Objects Not Found in Registry Hive'))
-        
-    report((""))
+       
+    # this makes a blank line in the output 
+    # report((""))
 
 

@@ -315,7 +315,7 @@ class report_manager:
         hinfo = header_info(action, context, term, extras, fileid)
         cinfo_list = self.get_case_info_list(fileid)
 
-        if active_tabs:
+        if active_tabs != None:
             # set all the info about the specific tab...
             active_tabs[tab] = o()
             active_tabs[tab].header_info    = hinfo

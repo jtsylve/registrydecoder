@@ -485,6 +485,8 @@ class registryDecoderGUI(QMainWindow, Ui_registrydecoder):
 
         if remove == 1: 
             self.analysisTabWidget.removeTab(index)
+        else:
+            print "Canot close tab: %s" % str(self.analysis_tabs)
 
     def ctrlw_tab(self):
 

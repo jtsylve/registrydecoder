@@ -77,7 +77,6 @@ class templateutil:
 
         return ret
 
-
     # returns False if path has a name of 'namestr'
     # returns the list of names otherwise
     def get_name_data(self, path, namestr):
@@ -94,6 +93,18 @@ class templateutil:
             if ret:
                 ret = ret[0]
 
+        return ret
+
+    def get_value_for_node_name(self, node, namestr):
+
+        ret = self.tree.obj.vtable.key_name(node, namestr, self.current_fileid())
+
+        # skip the file id
+        if ret:
+            vals = ret[0]
+
+            ret = self.stringid(vals.asciisid)
+ 
         return ret
 
     # like get_name_data but starts at 'node' instead of root

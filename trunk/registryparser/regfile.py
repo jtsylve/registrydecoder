@@ -22,69 +22,57 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
 #
-'''
-regfile 1.0
-2010
-Lodovico Marziale
-'''
-
 
 import regkey
-import regvalue		
+import regvalue        
 import pyregfi
 
 
-'''
-	Implement the following nomenclature for sanity across documentation etc.
-		KEY:   last element of a registry path, or the path itself 	// folder
-		VALUE: name:data pair in a key								// file
-		NAME:  the name of a VALUE									// filename
-		DATA: the encoded data of a value							// file contents
-
-		keys have (optional) subkeys
-		keys have values, min one: default:""
-'''
-
-			
 class RegFile:
 
-	'''
-	DOCME
-	'''
+    '''
+    DOCME
+    '''
 
-	def __init__(self, regfile):
-		self.regfile = regfile
+    def __init__(self, regfile):
+        self.regfile = regfile
 
-	def get_keygen(self):
+    def get_keygen(self):
 
-		reghive = pyregfi.openHive(self.regfile)
-		regiter = pyregfi.HiveIterator(reghive)
+        reghive = pyregfi.openHive(self.regfile)
+        regiter = pyregfi.HiveIterator(reghive)
 
-		for key in regiter:
-			path_list = []
-			for val in regiter.current_path():
-				path_list.append(val)
-			value_list = []
-			for val in key.values:
-				v = regvalue.Value(val.name, val.type, val.fetch_data())
-				value_list.append(v)
-			yield regkey.RegKeyNK(path_list, value_list, key.modified)
-		
-			
+        for key in regiter:
+            path_list = []
+            for val in regiter.current_path():
+                path_list.append(val)
+            value_list = []
+            for val in key.values:
+
+                data = val.fetch_data()
+
+                if not data:
+                    data = val.fetch_raw_data()
+
+                v = regvalue.Value(val.name, val.type, data)
+                value_list.append(v)
+            yield regkey.RegKeyNK(path_list, value_list, key.modified)
+        
+            
 # for now, give me a registry file and I will try to parse some stuff out
 def main():
-	
-	if len(sys.argv) != 2:
-		usage()
-		sys.exit()
-	
-	regfile = RegFile(sys.argv[1])
-		
-	generator = regfile.get_keygen()
-	for key in generator:
-		print key
+    
+    if len(sys.argv) != 2:
+        usage()
+        sys.exit()
+    
+    regfile = RegFile(sys.argv[1])
+        
+    generator = regfile.get_keygen()
+    for key in generator:
+        print key
 
 
 if __name__ == "__main__":
-	main()
-	
+    main()
+    
