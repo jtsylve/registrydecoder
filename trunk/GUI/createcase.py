@@ -341,8 +341,12 @@ class caseSummary:
         except:
             # the case_obj stuff gets reinitalized after button is pressed
             if self.gui.add_evidence == 0:
-                self.removeall(self.directory)
-                os.mkdir(regdir)
+                try:
+                    self.removeall(self.directory)
+                    os.mkdir(regdir)
+                except:
+                    self.gui.msgBox("WARNING: Registry Decoder was unable to remove the scratch directory. New evidence cannot be added to this case unless you manually remove the 'registryfiles' directory in your case folder.")     
+                    return
         try:
             os.mkdir(os.path.join(regdir,"singlefiles"))
         except:

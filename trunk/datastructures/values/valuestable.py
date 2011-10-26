@@ -97,11 +97,19 @@ class valuesholder:
         if not val.name or val.name == "":
             name = "NONE"
         else:
+            if val.name == "ThreadingModel":
+                v = 1
+            else:
+                v = 0
+
             name = self.get_ascii_type(val.name)
-            
+           
         regtype   = val.type_of_data        
         
         asciidata = self.get_ascii_type(val.data)
+
+        if v: 
+            print "val.data %s type %s name %s" % (val.data, type(val.data), asciidata)
         
         if val.data and regtype == 3: # REG_BINARY
             rawdata  = "".join(["%.02x" % r for r in val.data])

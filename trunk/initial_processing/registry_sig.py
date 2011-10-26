@@ -45,6 +45,11 @@ class registry_sig:
         for check in lookfor:
 
             if check in checkbuffer or check.upper() in checkbuffer:
+                    
+                # UsrClass to usrclass
+                if idx == 6:
+                    idx = 5
+
                 return [SINGLEFILE, idx]
 
             idx = idx + 1

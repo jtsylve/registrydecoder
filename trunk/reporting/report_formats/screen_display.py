@@ -54,8 +54,6 @@ class screenDisplay:
         else:
             colors = [Qt.red, Qt.black, Qt.blue]
             idxctr = color_idxs[0] 
-            #if idxctr > 0:
-            #    idxctr = idxctr - 1
 
         color_idx = 0 
         color = colors[color_idx]
@@ -66,18 +64,14 @@ class screenDisplay:
             if color_idxs != [] and idxctr == 0:
                 if color_idx < 2:
                     color_idx = color_idx + 1
-                #print "new color idx %d" % color_idx
-                idxctr    = color_idxs[color_idx]# - 1
-                #print "set1 %d" % idxctr
+                
+                idxctr    = color_idxs[color_idx]
     
                 if idxctr == 0:        
                     if color_idx < 2:
                         color_idx = color_idx + 1
 
                     idxctr    = color_idxs[color_idx]
-                    #print "Set2: %d" % idxctr
-
-                #print "trying idx color %d" % color_idx
                 
                 color     = colors[color_idx]
             

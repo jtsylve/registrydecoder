@@ -315,13 +315,14 @@ class report_manager:
         hinfo = header_info(action, context, term, extras, fileid)
         cinfo_list = self.get_case_info_list(fileid)
 
-        # set all the info about the specific tab...
-        active_tabs[tab] = o()
-        active_tabs[tab].header_info    = hinfo
-        active_tabs[tab].case_info_list = cinfo_list
-        active_tabs[tab].match_idxs     = match_idxs
-        active_tabs[tab].plugin_set     = tm.plugin_set_header
-        active_tabs[tab].tblWidget      = tab.tblWidget
+        if active_tabs:
+            # set all the info about the specific tab...
+            active_tabs[tab] = o()
+            active_tabs[tab].header_info    = hinfo
+            active_tabs[tab].case_info_list = cinfo_list
+            active_tabs[tab].match_idxs     = match_idxs
+            active_tabs[tab].plugin_set     = tm.plugin_set_header
+            active_tabs[tab].tblWidget      = tab.tblWidget
 
         (header_list, rdata, rows_max, cols_max) = self.get_report_data(tm)
         

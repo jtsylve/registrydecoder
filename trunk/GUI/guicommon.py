@@ -22,7 +22,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
 #
-import sys, os, datetime
+import sys, os, datetime, codecs
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -514,13 +514,54 @@ def diffBoxClicked(self, isChecked, tree_name):
 
 def hide_tab_widgets(tab):
 
+    # only hide the report format and drop down box
     tab.pushbutton.hide()
     tab.reportname.hide()
     tab.cbox.hide()
     tab.label1.hide()
     tab.label2.hide() 
 
- # python diffing lists of objects is strange.. do it our own
+def setup_diff_report(self, tab, orig_only, diff_only):
+
+    global global_gui
+
+    global_gui = self.gui
+    
+    # save the lists for exporting
+    tab.orig_only = orig_only
+    tab.diff_only = diff_only    
+
+    tab.cbox.hide()
+    tab.label1.hide()
+
+def write_diff(fd, ents, char):
+
+    # for each entry in the list
+    for ent in ents:
+
+        val = char + " "
+
+        for item in ent:
+            val = val + item + "\t"
+
+        val = val[:-1] + "\n"
+
+        fd.write(val)
+
+def createDiffReport():
+        
+    curtab = global_gui.analysisTabWidget.currentWidget()
+
+    filename = str(curtab.reportname.text())
+
+    fd = codecs.open(filename, "w+", encoding="UTF-8")  
+    
+    write_diff(fd, curtab.orig_only, "<")
+    write_diff(fd, curtab.diff_only, ">")
+
+    fd.close()
+
+# python diffing lists of objects is strange.. do it our own
 def my_diff(one, two):
 
     ret = []

@@ -78,6 +78,8 @@ class plugintab:
         self.defaults = ["ALL"] + common.hive_types    
         self.current_hive = ""
 
+        self.orig_click_handler = ""
+
     # remove duplicates, empty entries, etc
     def filter_plugins(self, plugins):
 
@@ -321,12 +323,8 @@ class plugintab:
             sendores = ores
             appheader = []
         
-        #print "nres after: %s" % str(ores)                
         (orig_only, new_only, orig_results) = self.gcommon.diff_lists(sendores, nres) 
             
-        #print "%d\n%d\n%d\n" % (len(orig_only), len(new_only), len(orig_results))
-        #print "%s\n\n\n%s\n\n\n%s" % (str(orig_only), str(new_only), str(orig_results))
-        
         data_list = appheader + orig_only + orig_results + new_only
         
         # get values to report out of search_match lists
@@ -336,21 +334,17 @@ class plugintab:
         # idxs to color on
         idxs = self.gcommon.get_idxs(data_ents)
 
-        #print "idxs: %s" % str(idxs)
-        
-        #print "idxs: %s" % str(idxs)
-        
         # will be real values if we decide to report diff output
-        tab = self.gf.plugin_export_form(self, -42, orig.plugin.pluginname, self.get_label_text(r.plugin.pluginname, r.filepath))
+        tab = self.gf.plugin_export_form(self, -42, orig.plugin.pluginname, "Diff Results", is_diff=1)
         
         tab.do_not_export = 1
 
-        self.gcommon.hide_tab_widgets(tab)
+        self.gcommon.setup_diff_report(self, tab, orig_only, new_only)
 
         tm = tmclass(data_list, orig.tm.plugin_set_header)
 
         # for now orig.tm works b/c we just need to know if the plugin set a header and/or a timestamp
-        self.rm.report_tab_info(self.rm.display_reports[0], tm, tab, self.active_tabs, -42, "Plugin", "Plugin Name", "Plugin Diff", color_idxs=idxs)
+        self.rm.report_tab_info(self.rm.display_reports[0], tm, tab, None, -42, "Plugin", "Plugin Name", "Plugin Diff", color_idxs=idxs)
 
     # called when run plugin button is clicked 
     def run_plugin(self):
@@ -470,6 +464,9 @@ class plugintab:
 
     def diffBoxClicked(self, isChecked):
         self.gcommon.diffBoxClicked(self, isChecked, "pluginDiffTreeWidget")
+
+
+
 
 
 

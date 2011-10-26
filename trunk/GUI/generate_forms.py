@@ -47,14 +47,14 @@ class generate_forms:
     def generate_search_view_form(self, ref_obj, fileid, tab_name, label_text, results): 
         return self.search_plugin_export_form(ref_obj, fileid, tab_name, label_text, results)
 
-    def plugin_export_form(self, ref_obj, fileid, tab_name, label_text): 
-        return self.search_plugin_export_form(ref_obj, fileid, tab_name, label_text)
+    def plugin_export_form(self, ref_obj, fileid, tab_name, label_text, is_diff=0): 
+        return self.search_plugin_export_form(ref_obj, fileid, tab_name, label_text, is_diff=is_diff)
 
     def path_export_form(self, ref_obj, fileid, tab_name, label_text):
         return self.search_plugin_export_form(ref_obj, fileid, tab_name, label_text)        
 
     # this is pretty ugly, a mix up of a few functions, has cruft everywhere, etc
-    def search_plugin_export_form(self, ref_obj, fileid, tab_name, label_text, results=None):
+    def search_plugin_export_form(self, ref_obj, fileid, tab_name, label_text, results=None, is_diff=0):
 
         pluginTab = QWidget()
         searchTab = pluginTab
@@ -111,7 +111,11 @@ class generate_forms:
         createReportPushButton.setText("Create Report")
      
         # register signals
-        ref_obj.gui.connect(createReportPushButton, SIGNAL("clicked()"), ref_obj.createReportClicked)  
+        if is_diff:
+            ref_obj.gui.connect(createReportPushButton, SIGNAL("clicked()"), ref_obj.gcommon.createDiffReport)
+        else:
+            ref_obj.gui.connect(createReportPushButton, SIGNAL("clicked()"), ref_obj.createReportClicked)  
+
         SearchReportFilenameLineEdit.mousePressEvent =  ref_obj.gui.get_report_name
 
         self.set_ctrlw_handler(ref_obj.gui, new_tab)
