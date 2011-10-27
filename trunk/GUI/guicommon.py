@@ -94,8 +94,8 @@ def parse_date(self, dateStr):
         ret = []
     else:
         # v1 way -- didn't make sense since last write time in browse were different format
-        #(month, day, year) = ent
-        (year, month, day) = ent
+        #(month, day, year) = ents
+        (year, month, day) = ents
         ret = QDate(year, month, day)
 
     return ret
