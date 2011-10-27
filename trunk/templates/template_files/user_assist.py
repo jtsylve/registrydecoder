@@ -110,6 +110,5 @@ def run_me():
             elif len(data) < 16:
                 reg_report((name, '', '', '', key_name))
                 
-    report((""))
 
 

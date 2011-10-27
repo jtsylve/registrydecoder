@@ -157,7 +157,5 @@ def run_me():
     else:
         reg_report(('Path to Browser Helper Objects Not Found in Registry Hive'))
        
-    # this makes a blank line in the output 
-    # report((""))
 
 

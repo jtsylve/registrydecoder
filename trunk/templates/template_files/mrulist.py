@@ -53,7 +53,6 @@ def run_me():
             for val in reg_get_values(regkey):
                 if reg_get_value_name(val) not in ignore:
                     reg_report((reg_get_value_name(val), reg_get_value_data(val)))
-            reg_report((""))
 
 
 

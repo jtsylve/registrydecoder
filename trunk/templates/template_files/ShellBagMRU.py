@@ -484,6 +484,5 @@ def run_me():
  
     print_report(parsed_mru_values)                       # Printing Report of MRU Values
     
-    report((""))
 
 
