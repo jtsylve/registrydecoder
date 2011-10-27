@@ -117,7 +117,7 @@ class report_handler:
         if not extabs:
             extabs = dict(self.gui.searchtab.active_tabs.items() + self.gui.plugintab.active_tabs.items() + self.gui.pathtab.active_tabs.items())
 
-        if  len(extabs) == 0: 
+        if len(extabs) == 0: 
             self.gui.msgBox("Export All clicked when no tabs were active")
             return
 

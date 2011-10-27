@@ -47,8 +47,8 @@ class registry_sig:
             if check in checkbuffer or check.upper() in checkbuffer:
                     
                 # UsrClass to usrclass
-                if idx == 6:
-                    idx = 5
+                if idx == 7:
+                    idx = 6
 
                 return [SINGLEFILE, idx]
 
