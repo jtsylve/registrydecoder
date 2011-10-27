@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'GUI/uifiles/registrydecoder.ui'
 #
-# Created: Wed Oct 19 15:58:46 2011
+# Created: Thu Oct 27 12:47:23 2011
 #      by: PyQt4 UI code generator 4.7.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -638,7 +638,7 @@ class Ui_registrydecoder(object):
         self.searchDataCheckBox.setText(QtGui.QApplication.translate("registrydecoder", "Data", None, QtGui.QApplication.UnicodeUTF8))
         self.label_15.setText(QtGui.QApplication.translate("registrydecoder", "Search Terms (File)", None, QtGui.QApplication.UnicodeUTF8))
         self.searchTermsPushButton.setText(QtGui.QApplication.translate("registrydecoder", "Browse", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_16.setText(QtGui.QApplication.translate("registrydecoder", "Filter (mm/dd/yyyy)", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_16.setText(QtGui.QApplication.translate("registrydecoder", "Filter (yyyy/mm/dd)", None, QtGui.QApplication.UnicodeUTF8))
         self.performSearchDiffCheckBox.setText(QtGui.QApplication.translate("registrydecoder", "Perform Diff", None, QtGui.QApplication.UnicodeUTF8))
         self.searchTermLabel.setText(QtGui.QApplication.translate("registrydecoder", "Search Term", None, QtGui.QApplication.UnicodeUTF8))
         self.analysisTabWidget.setTabText(self.analysisTabWidget.indexOf(self.SearchTab), QtGui.QApplication.translate("registrydecoder", "Search", None, QtGui.QApplication.UnicodeUTF8))
@@ -655,7 +655,7 @@ class Ui_registrydecoder(object):
         self.pathTermsPushButton.setText(QtGui.QApplication.translate("registrydecoder", "Browse", None, QtGui.QApplication.UnicodeUTF8))
         self.label_19.setText(QtGui.QApplication.translate("registrydecoder", "Start Date", None, QtGui.QApplication.UnicodeUTF8))
         self.label_21.setText(QtGui.QApplication.translate("registrydecoder", "End Date", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_20.setText(QtGui.QApplication.translate("registrydecoder", "Filter (mm/dd/yyyy)", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_20.setText(QtGui.QApplication.translate("registrydecoder", "Filter (yyyy/mm/dd)", None, QtGui.QApplication.UnicodeUTF8))
         self.pathValuesCheckBox.setText(QtGui.QApplication.translate("registrydecoder", "Include Values", None, QtGui.QApplication.UnicodeUTF8))
         self.pathPushButton.setText(QtGui.QApplication.translate("registrydecoder", "Find Path", None, QtGui.QApplication.UnicodeUTF8))
         self.analysisTabWidget.setTabText(self.analysisTabWidget.indexOf(self.pathAnalysisTab), QtGui.QApplication.translate("registrydecoder", "Path Analysis", None, QtGui.QApplication.UnicodeUTF8))
@@ -664,7 +664,7 @@ class Ui_registrydecoder(object):
         self.timelineFilePushButton.setText(QtGui.QApplication.translate("registrydecoder", "Browse", None, QtGui.QApplication.UnicodeUTF8))
         self.label_25.setText(QtGui.QApplication.translate("registrydecoder", "Start Date", None, QtGui.QApplication.UnicodeUTF8))
         self.label_24.setText(QtGui.QApplication.translate("registrydecoder", "End Date", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_23.setText(QtGui.QApplication.translate("registrydecoder", "Filter (mm/dd/yyyy)", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_23.setText(QtGui.QApplication.translate("registrydecoder", "Filter (yyyy/mm/dd)", None, QtGui.QApplication.UnicodeUTF8))
         self.timelinePushButton.setText(QtGui.QApplication.translate("registrydecoder", "Timeline", None, QtGui.QApplication.UnicodeUTF8))
         self.analysisTabWidget.setTabText(self.analysisTabWidget.indexOf(self.timelineTab), QtGui.QApplication.translate("registrydecoder", "Timeline", None, QtGui.QApplication.UnicodeUTF8))
         self.toolBar_1.setWindowTitle(QtGui.QApplication.translate("registrydecoder", "File", None, QtGui.QApplication.UnicodeUTF8))
