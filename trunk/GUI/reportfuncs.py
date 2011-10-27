@@ -107,7 +107,7 @@ class report_handler:
     
         currentTab = self.gui.analysisTabWidget.currentWidget() 
         
-        if not hasattr(currentTab, "active_tabs") or (currentTab and len(currentTab.active_tabs) == 0): 
+        if not hasattr(currentTab, "active_tabs"): 
             self.gui.msgBox("Export All clicked when no tabs were active")
             return
 
@@ -116,6 +116,10 @@ class report_handler:
         # bulk export
         if not extabs:
             extabs = dict(self.gui.searchtab.active_tabs.items() + self.gui.plugintab.active_tabs.items() + self.gui.pathtab.active_tabs.items())
+
+        if len(currentTab.active_tabs) == 0: 
+            self.gui.msgBox("Export All clicked when no tabs were active")
+            return
 
         report     = self.get_plugin_export_format(currentTab.cbox)
 

@@ -93,7 +93,9 @@ def parse_date(self, dateStr):
         self.gui.msgBox("Invalid start date given.")
         ret = []
     else:
-        (month, day, year) = ents
+        # v1 way -- didn't make sense since last write time in browse were different format
+        #(month, day, year) = ent
+        (year, month, day) = ent
         ret = QDate(year, month, day)
 
     return ret
