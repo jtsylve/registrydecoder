@@ -51,7 +51,7 @@ class timelinetab:
         self.info_hash = self.gcommon.fill_tree(self.gui, "timelineTreeWidget")  
 
     def timeline_output_browse(self):    
-        filename = QFileDialog.getSaveFileName(directory="/home/x/", filter="All (*)", parent=self.gui, caption="Timeline Output File (newline seperated))") 
+        filename = QFileDialog.getSaveFileName(directory="/home/x/", filter="All (*)", parent=self.gui, caption="Timeline Output File") 
         
         self.gui.timelineLineEdit.setText(filename)
 

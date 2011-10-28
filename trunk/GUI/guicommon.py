@@ -553,9 +553,15 @@ def write_diff(fd, ents, char):
 def createDiffReport():
         
     curtab = global_gui.analysisTabWidget.currentWidget()
+    
+    fname = curtab.reportname.text()
+        
+    if not fname:
+        global_gui.msgBox("No filename given for diff exporting.")
+        return
 
-    filename = str(curtab.reportname.text())
-
+    filename = str(fname)
+    
     fd = codecs.open(filename, "w+", encoding="UTF-8")  
     
     write_diff(fd, curtab.orig_only, "<")
