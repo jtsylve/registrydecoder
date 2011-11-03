@@ -24,7 +24,7 @@
 #
 # contains all of the code for the case creation UI and event handlers
 
-import sys, os
+import sys, os, cProfile
 
 # If we're in a pyinstaller executable, from volatility
 if hasattr(sys, "frozen"):
@@ -502,7 +502,7 @@ class registryDecoderGUI(QMainWindow, Ui_registrydecoder):
 
         qb.show()
 
-def do_main():
+def do_gui_main():
 
     global guidrawn
 
@@ -516,15 +516,30 @@ def do_main():
 
     app.exec_()
 
-def main():
+def gui_main():
     
     if profile:
-        import cProfile
-        cProfile.run('do_main()')
+        cProfile.run('do_gui_main()')
     else:
-        do_main()
+        do_gui_main()
+
+def cmdline_main():
+
+    if profile:
+        cProfile.run('common.plugin_cmdline()')
+    else:
+        common.plugin_cmdline()
 
 if __name__ == "__main__":
-    main()
+
+    if len(sys.argv) > 3:
+        cmdline_main()
+    else:
+        gui_main()
    
+
+
+
+
+
 

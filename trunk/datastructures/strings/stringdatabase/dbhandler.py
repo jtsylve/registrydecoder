@@ -22,29 +22,28 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
 #
-#!/usr/bin/python
 
-import common, sqlite3handler
+import sqlite3handler
 
 class dbhandler:
 
-	def __init__(self, dbtype, case_dir):
+    def __init__(self, dbtype, case_dir):
 
-		self.databases = { "sqlite3" : sqlite3handler.sqlite3class	}
+        self.databases = { "sqlite3" : sqlite3handler.sqlite3class    }
 
-		self.handle = self.set_dbhandle(dbtype, case_dir)
+        self.handle = self.set_dbhandle(dbtype, case_dir)
 
-	def get_dbhandle(self):
+    def get_dbhandle(self):
 
-		return self.handle
+        return self.handle
 
-	def set_dbhandle(self, dbtype, case_dir):
+    def set_dbhandle(self, dbtype, case_dir):
 
-		if dbtype in self.databases:
-			ret = self.databases[dbtype](case_dir)
-		else:
-			common.die("Invalid database type sent to get_dbhandle %s" % dbtype)
-	
-		return ret
+        if dbtype in self.databases:
+            ret = self.databases[dbtype](case_dir)
+        else:
+            print "Invalid database type sent to get_dbhandle %s" % dbtype
+    
+        return ret
 
 

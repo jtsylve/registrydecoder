@@ -26,6 +26,18 @@ import sys, os, sqlite3, getopt
 
 from datetime import date, datetime
 
+import common
+
+import opencase
+
+import template_manager as tmmod
+
+def usage():
+
+    print "python opencase.py <case directory> <plugin name> <file id> <extra plugin directory (optional)>"
+    print "See the instructions file for complete description"
+    sys.exit(1)
+
 def parse_cmdline(gui, args):
 
     try:
@@ -62,5 +74,48 @@ def die(str):
 	sys.exit(1)
 
 hive_types =  ["SOFTWARE", "SYSTEM", "SECURITY", "NTUSER", "SAM", "USRCLASS"]
+
+def plugin_cmdline():
+
+    try:
+        case_dir    = sys.argv[1]
+        plugin_name = sys.argv[2]
+        fileid      = int(sys.argv[3])
+    except:
+        usage()
+
+    try:
+        extra = sys.argv[4]
+        extra = extra.split(";") 
+    except:
+        extra = []
+
+    # open the case and get the tree
+    o = opencase.opencase(case_dir)
+    o.current_fileid = fileid
+
+    tm = tmmod.TemplateManager()
+    tm.load_templates(o, extra)
+    
+    templates = tm.get_loaded_templates()
+    
+    ran = 0
+    
+    for t in templates:
+        if t.pluginname == plugin_name:
+            t.run_me()
+            ran = 1
+            break
+
+    if ran:
+        print "------output for %s------" % plugin_name
+        
+        for val_list in tm.report_data:
+            for val in val_list:
+                print val,
+            print ""
+
+    else:
+        print "invalid plugin given" 
 
 

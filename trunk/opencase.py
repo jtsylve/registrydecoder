@@ -26,10 +26,6 @@ import sys, os, struct, cPickle, sqlite3, getopt
 
 from datastructures.tree.paralleltree import *
 
-import template_manager as tmmod
-
-profile = 0
-
 class objclass:
     pass
 
@@ -88,66 +84,5 @@ class opencase:
         self.vtable         = obj.vtable
         self.case_directory = self.directory
         
-
-
-def usage():
-
-    print "python openmain.py <case directory> <plugin name> <file id> <extra plugin directory (optional)>"
-    print "See the instructions file for complete description"
-    sys.exit(1)
-
-def main():
-
-
-    try:
-        case_dir    = sys.argv[1]
-        plugin_name = sys.argv[2]
-        fileid      = int(sys.argv[3])
-    except:
-        usage()
-
-    try:
-        extra = sys.argv[4]
-        extra = extra.split(";") 
-    except:
-        extra = []
-
-    # open the case and get the tree
-    o = opencase(case_dir)
-    o.current_fileid = fileid
-
-    tm = tmmod.TemplateManager()
-    tm.load_templates(o, extra)
-    
-    templates = tm.get_loaded_templates()
-    
-    ran = 0
-    
-    for t in templates:
-        if t.pluginname == plugin_name:
-            t.run_me()
-            ran = 1
-            break
-
-    if ran:
-        print "------output for %s------" % plugin_name
-        
-        for val_list in tm.report_data:
-            for val in val_list:
-                print val,
-            print ""
-
-    else:
-        print "invalid plugin given" 
-
-
-if __name__ == "__main__":
-
-    if profile:
-        import cProfile
-        cProfile.run('main()')
-    else:
-        main()
-
 
 

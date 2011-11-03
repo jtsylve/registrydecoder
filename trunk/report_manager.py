@@ -282,7 +282,7 @@ class report_manager:
                     modname = fd.rsplit(".")[0]
                 
                     mod = __import__(modname)       
- 
+                    
                     valid = 1
                     for attr in required_attrs:
                         if not hasattr(mod, attr):

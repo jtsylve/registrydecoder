@@ -57,6 +57,8 @@ class evidence_database:
 
             pos = pos + oneMB
 
+        fd.close()
+
         return md5.hexdigest()
 
     def get_file_contents(self, path, filename):

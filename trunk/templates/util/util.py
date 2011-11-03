@@ -25,7 +25,7 @@
 from datastructures.strings.stringtable import *
 from errorclasses import *
 
-import common, datetime, binascii, struct
+import datetime, binascii, struct
 from string import ascii_uppercase, ascii_lowercase
 
 # CODING CONVENTION:
