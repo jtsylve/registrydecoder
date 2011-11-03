@@ -384,7 +384,11 @@ class caseSummary:
         # everything added, lets do some forensics!
         else:
             # delete all our scratch files / databases
-            self.removeall(os.path.join(self.directory, "registryfiles"))
+            try:
+                self.removeall(os.path.join(self.directory, "registryfiles"))
+            except:
+                self.gui.msgBox("WARNING: Registry Decoder was unable to remove the scratch directory. New evidence cannot be added to this case unless you manually remove the 'registryfiles' directory in your case folder.")
+
             self.gui.stackedWidget.setCurrentIndex(common.CASE_WINDOW)
 
     def handle_parse_error(self, e):
