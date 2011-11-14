@@ -12,6 +12,8 @@
    * Hive Searching
    * Plug-in System
    * Differencing of Registry Files
+   * Timelining
+   * Path based analysis
    * Automated Reporting
 
 = Which evidence types are supported? =
@@ -19,12 +21,15 @@
    * Raw (dd) images
    * Raw partition images
    * Individual Registry Files
+   * Split images
+   * Encase (E01) images
    * Databases created by the online acquisition component
 
 = Which report formats are supported? =
 
    * HTML
    * PDF
+   * XLS
 
 = How can I learn how to use Registry Decoder? =
 
