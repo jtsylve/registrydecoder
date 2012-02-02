@@ -173,7 +173,7 @@ class templateutil:
         
         unixtimestamp = node.timestamps[self.o.current_fileid]
 
-        lastwrite = datetime.datetime.fromtimestamp(unixtimestamp).strftime('%Y/%m/%d %H:%M:%S UTC')
+        lastwrite = datetime.datetime.fromtimestamp(unixtimestamp).strftime('%Y/%m/%d %H:%M:%S')
 
         return lastwrite
    

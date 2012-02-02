@@ -85,18 +85,25 @@ class search_results:
     def __hash__(self):
         return hash(str(self.results))
 # get the users date in the form of mm/dd/yyyy
-def parse_date(self, dateStr):
+def parse_date(self, dateStr, datetype):
 
-    ents = [int(x) for x in dateStr.split("/")]
+    e = [x for x in dateStr.split("/")]
 
-    if len(ents) != 3:
-        self.gui.msgBox("Invalid start date given.")
-        ret = []
+    if len(e) != 3:
+        self.gui.msgBox("Invalid %s date given." % datetype)
+        ret = None
     else:
-        # v1 way -- didn't make sense since last write time in browse were different format
-        #(month, day, year) = ents
-        (year, month, day) = ents
-        ret = QDate(year, month, day)
+    
+        try:
+            ents = [int(x) for x in e]
+        except:
+            self.gui.msgBox("Invalid %s date given." % datetype)
+            ret = None
+        else:
+            # v1 way -- didn't make sense since last write time in browse were different format
+            #(month, day, year) = ents
+            (year, month, day) = ents
+            ret = QDate(year, month, day)
 
     return ret
 
@@ -107,16 +114,16 @@ def filter_results(self, results, fileid, startStr, endStr):
     ret = []
 
     if startStr:
-        start = parse_date(self, startStr)
-        if not start:
-            return []
+        start = parse_date(self, startStr, "start")
+        if start == None:
+            return None
     else:
         start = ""
 
     if endStr:
-        end = parse_date(self, endStr)
-        if not end:
-            return []
+        end = parse_date(self, endStr, "end")
+        if end == None:
+            return None
     else:
         end = ""
 

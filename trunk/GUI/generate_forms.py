@@ -113,6 +113,7 @@ class generate_forms:
         # register signals
         if is_diff:
             ref_obj.gui.connect(createReportPushButton, SIGNAL("clicked()"), ref_obj.gcommon.createDiffReport)
+            new_tab.diff_tab = 1
         else:
             ref_obj.gui.connect(createReportPushButton, SIGNAL("clicked()"), ref_obj.createReportClicked)  
 

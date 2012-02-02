@@ -147,7 +147,7 @@ class pathtab:
             r = results[row]
 
             lastwrite = r.node.timestamps[fileid]
-            lastwrite = datetime.datetime.fromtimestamp(lastwrite).strftime('%Y/%m/%d %H:%M:%S UTC')
+            lastwrite = datetime.datetime.fromtimestamp(lastwrite).strftime('%Y/%m/%d %H:%M:%S')
 
             # add the path and its last write time
             ret.append([self.tapi.full_path_node_to_root(r.node), lastwrite])

@@ -120,7 +120,16 @@ class report_handler:
         if len(extabs) == 0: 
             self.gui.msgBox("Export All clicked when no tabs were active")
             return
+            
+        # don't export diff tabs
+        remove = []
+        for tab in extabs:
+            if hasattr(tab, "diff_tab"):
+                remove.append(tab)
 
+        for t in remove:
+            del extabs[t]
+                
         report     = self.get_plugin_export_format(currentTab.cbox)
 
         i = 0

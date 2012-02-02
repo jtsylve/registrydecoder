@@ -31,12 +31,13 @@ hive           = "SYSTEM"
 
 def run_me():
 
-    reg_set_report_header(("Device Name","Serial Number","Parent Prefix"))
+    reg_set_report_header(("Last Write Time", "Device Name","Serial Number"))
 
     regkey = reg_get_required_key("\ControlSet00"+get_current_control_set()+"\Enum\USBSTOR")
     
     for rkey in reg_get_subkeys(regkey):
         for key in reg_get_subkeys(rkey):
+            ltime = reg_get_lastwrite(rkey)
             serial = reg_get_key_name(key)
             fname = ""
             prefix = ""
@@ -44,7 +45,5 @@ def run_me():
                 name = reg_get_value_name(val)
                 if name == "FriendlyName":
                     fname = reg_get_value_data(val)
-                if name == "ParentIdPrefix":         
-                    prefix = reg_get_value_data(val)
-            reg_report((fname, serial, prefix))
+            reg_report((ltime, fname, serial))
  

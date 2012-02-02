@@ -266,7 +266,7 @@ class hiveTreeModel(QAbstractItemModel):
         path = self.tapi.full_path_node_to_root(node)
 
         lastwrite = node.timestamps[self.fileid]
-        lastwrite = datetime.datetime.fromtimestamp(lastwrite).strftime('%Y/%m/%d %H:%M:%S UTC')
+        lastwrite = datetime.datetime.fromtimestamp(lastwrite).strftime('%Y/%m/%d %H:%M:%S')
 
         self.filetab.currentPath.clear()
         self.filetab.currentPath.insert(path + " -- " + lastwrite)

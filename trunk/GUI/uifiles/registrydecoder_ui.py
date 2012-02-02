@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'GUI/uifiles/registrydecoder.ui'
 #
-# Created: Thu Oct 27 12:47:23 2011
+# Created: Thu Feb  2 01:19:53 2012
 #      by: PyQt4 UI code generator 4.7.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -527,7 +527,16 @@ class Ui_registrydecoder(object):
         self.gridLayout_26.addWidget(self.timelineEndDateLlineEdit_2, 3, 2, 1, 1)
         self.timelinePushButton = QtGui.QPushButton(self.timelineTab)
         self.timelinePushButton.setObjectName("timelinePushButton")
-        self.gridLayout_26.addWidget(self.timelinePushButton, 4, 1, 1, 1)
+        self.gridLayout_26.addWidget(self.timelinePushButton, 5, 1, 1, 1)
+        self.excelRadioButton = QtGui.QRadioButton(self.timelineTab)
+        self.excelRadioButton.setObjectName("excelRadioButton")
+        self.gridLayout_26.addWidget(self.excelRadioButton, 4, 1, 1, 1)
+        self.mactimeRadioButton = QtGui.QRadioButton(self.timelineTab)
+        self.mactimeRadioButton.setObjectName("mactimeRadioButton")
+        self.gridLayout_26.addWidget(self.mactimeRadioButton, 4, 2, 1, 1)
+        self.label_26 = QtGui.QLabel(self.timelineTab)
+        self.label_26.setObjectName("label_26")
+        self.gridLayout_26.addWidget(self.label_26, 4, 0, 1, 1)
         self.gridLayout_27.addLayout(self.gridLayout_26, 1, 1, 1, 1)
         spacerItem34 = QtGui.QSpacerItem(498, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.gridLayout_27.addItem(spacerItem34, 2, 1, 1, 1)
@@ -666,6 +675,9 @@ class Ui_registrydecoder(object):
         self.label_24.setText(QtGui.QApplication.translate("registrydecoder", "End Date", None, QtGui.QApplication.UnicodeUTF8))
         self.label_23.setText(QtGui.QApplication.translate("registrydecoder", "Filter (yyyy/mm/dd)", None, QtGui.QApplication.UnicodeUTF8))
         self.timelinePushButton.setText(QtGui.QApplication.translate("registrydecoder", "Timeline", None, QtGui.QApplication.UnicodeUTF8))
+        self.excelRadioButton.setText(QtGui.QApplication.translate("registrydecoder", "Excel", None, QtGui.QApplication.UnicodeUTF8))
+        self.mactimeRadioButton.setText(QtGui.QApplication.translate("registrydecoder", "mactime", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_26.setText(QtGui.QApplication.translate("registrydecoder", "Timeline Format", None, QtGui.QApplication.UnicodeUTF8))
         self.analysisTabWidget.setTabText(self.analysisTabWidget.indexOf(self.timelineTab), QtGui.QApplication.translate("registrydecoder", "Timeline", None, QtGui.QApplication.UnicodeUTF8))
         self.toolBar_1.setWindowTitle(QtGui.QApplication.translate("registrydecoder", "File", None, QtGui.QApplication.UnicodeUTF8))
         self.toolBar_2.setWindowTitle(QtGui.QApplication.translate("registrydecoder", "toolBar_2", None, QtGui.QApplication.UnicodeUTF8))

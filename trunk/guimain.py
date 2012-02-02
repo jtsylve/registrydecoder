@@ -480,7 +480,7 @@ class registryDecoderGUI(QMainWindow, Ui_registrydecoder):
             remove = 1
                 
         # bulk export tabs
-        elif hasattr(closed_tab, "is_bulk"):
+        elif hasattr(closed_tab, "is_bulk") or hasattr(closed_tab, "diff_tab"):
             remove = 1
 
         if remove == 1: 

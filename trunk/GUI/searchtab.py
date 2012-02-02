@@ -109,8 +109,24 @@ class searchtab:
 
         startDate    = self.gui.searchStartDateLineEdit.text()
         endDate      = self.gui.searchEndDateLlineEdit.text()
- 
-        return search_params(searchterms, searchfile, partialsearch, searchKeys, searchNames, searchData, startDate, endDate) 
+    
+        if startDate != "":
+            s = self.gcommon.parse_date(self, startDate, "start")
+        else:
+            s = 1
+        
+        if endDate != "":
+           e = self.gcommon.parse_date(self, endDate, "end")
+        else:
+           e = 1
+            
+        # input error
+        if s == None or e == None:
+            ret = None
+        else:
+            ret = search_params(searchterms, searchfile, partialsearch, searchKeys, searchNames, searchData, startDate, endDate) 
+            
+        return ret
 
     # get results for the given search term(s) and fileid
     def do_get_search_results(self, sp, fileid):
@@ -262,7 +278,7 @@ class searchtab:
 
         sp = self.get_search_params()
 
-        if not sp:
+        if not sp or sp == None:
             return
 
         perform_diff = self.gui.performSearchDiffCheckBox.isChecked()
@@ -334,7 +350,7 @@ class searchtab:
             r = results[row]
             
             lastwrite = r.node.timestamps[fileid]
-            lastwrite = datetime.datetime.fromtimestamp(lastwrite).strftime('%Y/%m/%d %H:%M:%S UTC')
+            lastwrite = datetime.datetime.fromtimestamp(lastwrite).strftime('%Y/%m/%d %H:%M:%S')
  
             vals  = [lastwrite, r.node.fullpath, r.name, r.data]
 

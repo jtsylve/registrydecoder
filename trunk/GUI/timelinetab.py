@@ -73,9 +73,25 @@ class timelinetab:
 
         startDate    = self.gui.timelineStartDateLineEdit.text()
         endDate      = self.gui.timelineEndDateLlineEdit_2.text()
- 
-        return timeline_params(fd, outputfile, startDate, endDate)
-
+        
+        if startDate != "":
+            s = self.gcommon.parse_date(self, startDate, "start")
+        else:
+            s = 1
+        
+        if endDate != "":
+           e = self.gcommon.parse_date(self, endDate, "end")
+        else:
+           e = 1
+    
+        # input error
+        if s == None or e == None:
+            ret = None
+        else:
+            ret = timeline_params(fd, outputfile, startDate, endDate)
+            
+        return ret
+        
     def run_timeline(self, fileid, sp):
 
         filepath = self.gcommon.get_file_info(self.info_hash, fileid)[0]
@@ -106,18 +122,24 @@ class timelinetab:
                 if len(res) == 1:
 
                     path      = self.tapi.full_path_node_to_root(node)
+                    
                     lastwrite = node.timestamps[fileid] 
-                    #lastwrite = datetime.datetime.fromtimestamp(lastwrite).strftime('%Y/%m/%d %H:%M:%S UTC')
-
-                    # taken from regtime.pl
-                    sp.fd.write("0|%s:%s|0|0|0|0|0|0|%d|0|0\n" % (filepath, path, lastwrite))
+            
+                    if self.gui.excelRadioButton.isChecked():
+                        lastwrite = datetime.datetime.fromtimestamp(lastwrite).strftime('%Y/%m/%d %H:%M:%S')
+                        sp.fd.write("%s\t%s\t%s\n" % (filepath, path, lastwrite))
+                    
+                    else:
+                        # these three lines will write out autopsy format, regtime.pl
+                        filepath = filepath.replace("|", ",")
+                        sp.fd.write("0|%s:%s|0|0|0|0|0|0|%d|0|0\n" % (filepath, path, lastwrite))
 
     # called when 'timeline' is clicked
     def viewTree(self):
 
         sp = self.get_timeline_params()
 
-        if not sp:
+        if not sp or sp == None:
             return
 
         self.gcommon.run_cb_on_tree(self, self.run_timeline, sp, "timelineTreeWidget")  
