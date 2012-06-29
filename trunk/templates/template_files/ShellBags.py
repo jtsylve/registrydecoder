@@ -23,10 +23,11 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
 #
 #
-# Kevin Moore - CERT - kevinm@cert.org
+# Kevin Moore - km@while1forensics.com
+# Version 0.3
 
 pluginname = "Shell Bags"
-description = ""
+description = "Contains information on icon position"
 hives = ['NTUSER', 'USRCLASS'] 
 documentation = ""
 
@@ -157,18 +158,21 @@ def run_me():
         else:
             bags = Bags()
             
-            dict_file_type = {50:'FILE',49:'FOLDER',58:'FILE'}           # Known File Type Dictionary (decimal)
+            dict_file_type = {'\x32':'FILE','\x31':'FOLDER','\x3a':'FILE'}           # Known File Type Dictionary
             
             size, = struct.unpack('H', segment[0:2])                     # Size of bag entry
-            file_type, = struct.unpack('B', segment[2])                  # Bag entry type - see file type dictionary above - questionable difference between SHORTCUT and FILE
+            file_type = segment[2]                                       # Bag entry type - see file type dictionary above - questionable difference between SHORTCUT and FILE
             file_size, = struct.unpack('I', segment[4:8])                # size of file/folder - for shortcuts, size of lnk file
             
             # Modification Date (original file date/time)
             m_date, = struct.unpack('H', segment[8:10])                  # DOSDATE Entry
             m_time, = struct.unpack('H', segment[10:12])                 # DOSTIME Entry
             if m_date > 1 and m_time > 0:                                # Handles invalid or corrupt date values
-                mod = bags.convert_DOS_datetime_to_UTC(m_date, m_time)   # Convert Date/Time to readable output
-                modified = mod.strftime(date_format)
+                try:
+                    mod = bags.convert_DOS_datetime_to_UTC(m_date, m_time)   # Convert Date/Time to readable output
+                    modified = mod.strftime(date_format)
+                except:
+                    modified = ''                                        # corrupt or invalid date value - set to null string
             else:
                 modified = ''                                            # Invalid or corrupt date values
                 
@@ -193,8 +197,11 @@ def run_me():
             c_date, = struct.unpack('H', segment[ptr:ptr+2])             # DOSDATE Entry
             c_time, = struct.unpack('H', segment[ptr+2:ptr+4])           # DOSDATE Entry
             if c_date > 1 and c_time > 0:                                # Handles invalid or corrupt date values
-                crt = bags.convert_DOS_datetime_to_UTC(c_date, c_time)   # Convert Date/Time to readable input
-                created = crt.strftime(date_format)
+                try:
+                    crt = bags.convert_DOS_datetime_to_UTC(c_date, c_time)   # Convert Date/Time to readable input
+                    created = crt.strftime(date_format)
+                except:
+                    created = ''                                        # corrupt or invalid date value - set to null string
             else:
                 created = ''                                             # Invalid or corrupt date values
                 
@@ -202,8 +209,11 @@ def run_me():
             a_date, = struct.unpack('H', segment[ptr+4:ptr+6])           # DOSDATE Entry 
             a_time, = struct.unpack('H', segment[ptr+6:ptr+8])           # DOSDATE Entry
             if a_date > 1 and a_time > 0:                                # Handles invalid or corrupt date values
-                acc = bags.convert_DOS_datetime_to_UTC(c_date, c_time)   # Convert Date/Time to readable input
-                accessed = acc.strftime(date_format)
+                try:
+                    acc = bags.convert_DOS_datetime_to_UTC(c_date, c_time)   # Convert Date/Time to readable input
+                    accessed = acc.strftime(date_format)
+                except:
+                    accessed = ''                                        # corrupt or invalid date value - set to null string
             else:
                 accessed = ''                                            # Invalid or corrupt date values
             
@@ -244,12 +254,12 @@ def run_me():
             
             bags = Bags()
             
-            dict_sys_type = {80:'My Computer', 96:'Recycle Bin', 120:'Recycle Bin', 88:'My Network Places', 
-                             72:'My Documents', 66:'Application File Dialog'}
+            dict_sys_type = {'\x50':'My Computer', '\x60':'Recycle Bin', '\x78':'Recycle Bin', '\x58':'My Network Places', 
+                             '\x48':'My Documents', '\x42':'Application File Dialog'}
             
             size, = struct.unpack('H', segment[0:2])
             
-            sys_type, = struct.unpack('B', segment[3])                 # System Shortcut type as reference in dictionary above (decimal)
+            sys_type = segment[3]                 # System Shortcut type as reference in dictionary above (decimal)
             
             if sys_type in dict_sys_type:
                 bags.set_bag_data(offset, size, key, entry, 'SHORTCUT','','','','','','',dict_sys_type[sys_type])
@@ -398,7 +408,5 @@ def run_me():
     # END USRClass processing
 
     print_report(all_bags)
-    
-    report((""))
 
 

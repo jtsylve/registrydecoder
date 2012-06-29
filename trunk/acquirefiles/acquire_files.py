@@ -340,9 +340,13 @@ class acquire_files:
             if fname.startswith("RP"):
 
                 # only process still allocated restore points
-                if subdir.info.meta and (int(subdir.info.meta.flags) & 1) == 1: 
-                    subdir = fs.open_dir(inode=subdir.info.meta.addr)
-
+                if subdir.info.meta and (int(subdir.info.meta.flags) & 1) == 1:
+                    try:
+                        subdir = fs.open_dir(inode=subdir.info.meta.addr)
+                    except:
+                        #print "Debug: RP %s found but deleted" % fname
+                        continue
+                        
                     for f in subdir:
 
                         name = f.info.name.name
