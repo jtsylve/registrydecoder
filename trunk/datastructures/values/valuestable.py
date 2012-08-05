@@ -37,6 +37,14 @@ class nodevalue:
         self.rawsid   = rawsid
         self.regtype  = regtype
 
+    def __eq__(self, other):
+        
+        return  self.nodeid   == other.nodeid   and \
+                self.namesid  == other.namesid  and \
+                self.asciisid == other.asciisid and \
+                self.regtype  == other.regtype
+                
+                        
 class valuesholder:
 
     def __init__(self, obj):
@@ -192,9 +200,9 @@ class valuesholder:
             query = query + extra_query
 
             self.cursor.execute(query)
-
+            
             for v in self.cursor.fetchall():
-
+            
                 cur.append(nodevalue(node.nodeid, v[0], v[1], v[2], v[3]))
         
             ret = ret + cur
@@ -224,7 +232,7 @@ class valuesholder:
 
         return ret
 
-    def nodevals_for_search(self, sidcolumn, searchfor, fileids, partial):
+    def do_nodevals_for_search(self, sidcolumn, searchfor, fileids, partial):
 
         ret = []
         
@@ -234,13 +242,13 @@ class valuesholder:
             sids = self.stringtable.string_id(searchfor)
             if sids:
                 sids = [sids]
-
+               
         if  sids and sids != -1:
-            
+                        
             orp = self.or_statement(sidcolumn, sids)
 
             query = "select id from keyvalues where %s" % orp
-
+            
             self.cursor.execute(query)
 
             # the value ids that matched the search
@@ -256,14 +264,32 @@ class valuesholder:
                     continue
 
                 nodes = self.vid_cache[vid].keys()
-
+                
                 # get the values for each node
                 for node in nodes:
 
                     ret = ret + self.values_for_node(node, fileids, "and " + orp)
-
+                 
         return ret
             
+    def nodevals_for_search(self, sidcolumn, searchfor, fileids, partial):
+        
+        ret = self.do_nodevals_for_search(sidcolumn, searchfor, fileids, partial)
+                
+        filtered = []
+        
+        '''
+        This fixes the issue where 'names' would show up in search results multiple times
+        We could define __hash__ and then do something like list(set()) but then we have to worry about collisions
+        Since the lists are always going to be small, it doesn't seem worth the risk
+        '''
+        for node in ret:
+        
+            if node not in filtered:
+                filtered.append(node)
+        
+        return filtered
+        
     def names_for_search_partial(self, searchfor, fileids):
         return self.nodevals_for_search("namesid", searchfor, fileids, 1)
 
