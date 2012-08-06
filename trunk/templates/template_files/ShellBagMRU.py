@@ -24,7 +24,7 @@
 #
 #
 # Kevin Moore - km@while1forensics.com
-# Version 0.4
+# Version 0.5
 
 pluginname = "Shell BagMRU"
 description = "Contain information on folder settings, " \
@@ -194,11 +194,13 @@ def run_me():
                        '\x46':'Microsoft Windows Network', 
                        '\x47':'Entire Network',
                        '\x1f':'System Folder',
+                       '\x2e':'Device',
                        '\x2f':'Volume',
                        '\x32':'Zip File', 
                        '\x48':'My Documents', 
-                       '\x00':'Variable',
-                       '\xb1':'File Entry', 
+                       '\x00':'Varied',
+                       '\xb1':'Hidden Folder',
+                       '\x74':'System Protected Folder',
                        '\x71':'Control Panel', 
                        '\x61':'URI'}
 
@@ -215,7 +217,8 @@ def run_me():
       size, = struct.unpack('H', data[0:2])
       mru_type_val = data[2]     
       mru_type = cls.determine_mru_type(mru_type_val)
-
+      if mru_type == 'System Folder' and size != 20:
+        mru_type = 'Unrecognized Type'
       if data[6] == '\x05':
         mru_type = 'URI / Folder'
       # System Folders such as My Computer, My Network Places, etc.
@@ -225,30 +228,32 @@ def run_me():
       elif mru_type == 'Volume':
         rv = cls.parse_volume_mru(mru_type, name, path, data)
       # Windows Networking components MRU values
-      elif mru_type == 'Microsoft Windows Network' \
-           or mru_type == 'Windows Domain' \
-           or mru_type == 'Computer Name' \
-           or mru_type == 'Remote Share' \
-           or mru_type == 'Entire Network':
+      elif mru_type in ['Microsoft Windows Network','Windows Domain',
+                        'Computer Name', 'Remote Share', 'Entire Network']:
         if mru_type == 'Remote Share' and data[3] != '\x01':
           rv = cls.parse_unknown_type(mru_type, name, path, data, size)
         else:
           rv = cls.parse_win_network(mru_type, name, path, data)
-      elif mru_type == 'Folder' or mru_type == 'Zip File':
-        rv = cls.parse_folder(mru_type, name, path, data)
+      elif mru_type in ['Folder', 'Zip File', 'File Entry',
+                        'Hidden Folder', 'System Protected Folder']:
+        if mru_type in ['Folder', 'Zip File', 'File Entry', 'Hidden Folder']:
+          offset = 8
+        elif mru_type in ['System Protected Folder']:
+          offset = 18
+        rv = cls.parse_folder(mru_type, name, path, data, size, offset)
       elif mru_type == 'Device':
         rv = cls.parse_device_mru(mru_type, name, path, data)
       # This handles BagMRU values with varied structure
-      elif mru_type == 'Variable':
-        rv = cls.parse_variable_mru(mru_type, name, path, data)                              
+      elif mru_type == 'Varied':
+        rv = cls.parse_varied_mru(mru_type, name, path, data, size)                              
       elif mru_type == 'Control Panel':
         rv = cls.parse_control_panel(mru_type, name, path, data)
       elif mru_type == 'URI':
         rv = cls.parse_uri(mru_type, name, path, data)
       elif mru_type == 'URI / Folder':
         rv = cls.parse_uri_folder(mru_type, name, path, data)
-      # For Unknown values - placeholders for the time being to 
-      # keep path alignment for subsequent MRU entries
+      # For Unknown values - Zip Subfolders or placeholders for the time being
+      # to keep path alignment for subsequent MRU entries
       else:                                                                                 
         rv = cls.parse_unknown_type(mru_type, name, path, data, size)
       return rv
@@ -271,8 +276,7 @@ def run_me():
       if sys_value in sys_type_dict:
         sys_type = sys_type_dict[sys_value]          
       else:# For folders we cannot identify the type of
-        sys_type = 'Unrecognized System Folder'                     
-
+        sys_type = 'Unrecognized System Folder'
       mru_data = cls(name=name, 
                      path=path, 
                      mru_type=sys_type, 
@@ -295,26 +299,43 @@ def run_me():
       # Parses Device MRU Entries. Some entries contain device entries 
       # as commonly seen in setupapi.log file
       # Username and device name lengths
-      user_string_length, = struct.unpack('I', data[30:34])                         
-      device_string_length, = struct.unpack('I', data[34:38])
-      # String length does not include utf-16 null terminated values 
-      user_string_length *= 2                                                                                               
-      device_string_length *= 2
-      end_device_string = user_string_length + device_string_length
-      try:
-        user_string_value = cls.get_string(data[40:
-          40+user_string_length].decode('utf-16'))
-      except:
-        user = ''
-      try:
-        device_string_value = cls.get_string(data[40+user_string_length:
-          40+end_device_string].decode('utf-16'))
-      except:
-        device = ''
-      mru_data = cls(name=name,
-                     path=path,
-                     mru_type=mru_type,
-                     mru_value=user_string_value+":"+device_string_value+"\\")
+      mru_value = ''
+      if len(data) >= 38:
+        try:
+          user_string_length, = struct.unpack('I', data[30:34])                         
+          device_string_length, = struct.unpack('I', data[34:38])
+          # String length does not include utf-16 null terminated values 
+          user_string_length *= 2                                                                                               
+          device_string_length *= 2
+          end_device_string = user_string_length + device_string_length
+          try:
+            user_string_value = cls.get_string(data[40:
+              40+user_string_length].decode('utf-16'))
+          except:
+            user = ''
+          try:
+            device_string_value = cls.get_string(data[40+user_string_length:
+              40+end_device_string].decode('utf-16'))
+          except:
+            device = ''
+          mru_value = user_string_value + ":" + device_string_value + "\\"          
+        except:
+          pass
+        finally:
+          if user_string_value is '' and device_string_value is '':
+            device_uuid = uuid.UUID(bytes_le=data[18:34])
+            mru_value = '{' + str(device_uuid) + '}\\'            
+          mru_data = cls(name=name,
+                           path=path,
+                           mru_type=mru_type,
+                           mru_value=mru_value)         
+      else:
+        device_uuid = uuid.UUID(bytes_le=data[4:20])
+        mru_value = '{' + str(device_uuid) + '}\\'
+        mru_data = cls(name=name,
+                       path=path,
+                       mru_type=mru_type,
+                       mru_value=mru_value)
       return mru_data
     
     @classmethod
@@ -332,7 +353,6 @@ def run_me():
     
     @classmethod
     def parse_control_panel(cls, mru_type, name, path, data):
-      m = MRUEntry()
       control_panel_uuid = uuid.UUID(bytes_le=data[14:30])
       if str(control_panel_uuid) in panel_types:
         panel_type = panel_types[str(control_panel_uuid)]
@@ -341,7 +361,7 @@ def run_me():
       mru_data = cls(name=name,
                      path=path,
                      mru_type=mru_type,
-                     mru_value=panel_type)
+                     mru_value=panel_type + '\\')
       return mru_data
     
     @classmethod
@@ -365,9 +385,9 @@ def run_me():
       return mru_data
 
     @classmethod
-    def parse_variable_mru(cls, mru_type, name, path, data):
-      # This handles MRU values with readable contents but structure is varied
-      mru_value = ''
+    def parse_varied_mru(cls, mru_type, name, path, data, size):
+      # This handles MRU values with readable contents but structure is varied   
+      mru_value = '\\'
       if data[4] == '\x1a':
         mru_type = 'Folder'
         fl_uuid = uuid.UUID(bytes_le=data[14:30])
@@ -375,24 +395,59 @@ def run_me():
           mru_value = folder_types[str(fl_uuid)]
         else:
           mru_value = '{' + str(fl_uuid) + '}'
-      else:                                                                               
+        mru_data = cls(name=name, 
+                       path=path, 
+                       mru_type=mru_type,
+                       mru_value=mru_value + "\\")
+      # These values appear to also be associated with subentries under
+      # Control Panel objects
+      elif '1SPS' in data:
         try:
-          # Sections of other varied MRU types appear to have 
-          # data sections split by 1SPS
-          test_1sps_list = data.split('1SPS')
-          mru_type = 'Folder'
-          mru_len, = struct.unpack('I', test_1sps_list[1][29:33])
-          # String data starts 33 bytes from start of data section.
-          # String length does not include utf-16 null values for each 
-          # character thus double length
-          mru_value = cls.get_string(test__1sps_list[1][33:
-                                                33+mru_len*2].decode('utf-16'))    
+          if data[7:10] in ['\xee\xeb\xbe']:
+            mru_type = 'Panel Option'
+          else:
+            mru_type = 'Network Folder'
+          value = 18
+          while value < len(data):
+            section_size, = struct.unpack('I', data[value:value+4])
+            if section_size <= 8:
+              break
+            str_length, = struct.unpack('I', data[value+37:value+41])
+            str_length = (str_length*2)-2
+            mru_value += cls.get_string(data[value + 41:
+                                value + 41 + str_length].decode('utf-16')) +'\\'        
+            value += section_size
         except:
           pass
-      mru_data = cls(name=name, 
-                     path=path, 
-                     mru_type=mru_type,
-                     mru_value=mru_value + "\\")
+        finally:
+          mru_data = cls(name=name, 
+                         path=path, 
+                         mru_type=mru_type,
+                         mru_value=mru_value)
+          
+      # These are folder entries that have a slightly different start offset
+      elif data[4:8] == 'AugM':
+        mru_type = 'Folder'
+        offset = 28
+        mru_data = cls.parse_folder(mru_type, name, path, data, size, offset)
+      
+      # These appear to be Device Property entries that are subentries under
+      # Device objects. These will typically have names like DCIM, CF, Internal
+      # Storage, etc.
+      elif data[4] in ['\xa4','\xb4', '\x7a', '\x30', '\xc4', '\x9a']:
+        mru_type = 'Device Property'
+        str_len, = struct.unpack('H', data[66:68])
+        str_len = (str_len*2) - 2
+        mru_value = cls.get_string(data[74:74+str_len].decode('utf-16'))
+        mru_data = cls(name=name, 
+                       path=path, 
+                       mru_type=mru_type,
+                       mru_value=mru_value + "\\")
+      
+      # If none of those worked, try to see if it is a Zip Folder or another
+      # type that is difficult to classify
+      else:
+        mru_data = cls.parse_unknown_type(mru_type, name, path, data, size)
       return mru_data
     
     @classmethod
@@ -418,44 +473,64 @@ def run_me():
     @classmethod
     def parse_unknown_type(cls, mru_type, name, path, data, size):
       # Placeholder for Unknown MRU types - return empty MRUEntry class Object
-      # Attempting to parse entries that may be zip file subfolder entries
+      # Attempting to parse entries that may be zip file subfolder entries.
       mru_data = cls(name=name,
                      path=path,
                      mru_type=mru_type)       
       if size > 68:
-        try:
-          # Zip subfolder names appear to always start at offset 68, 
-          # containing a variable length unicode string
-          zip_folder_path = cls.get_string(data[68:].decode('utf-16'))                                                    
-          if zip_folder_path != '':                                                                                     
-            try:
-              # Zip subfolder entries contain a unicode string value at 
-              # offset 24 of when folder was accessed/opened
-              date_opened = cls.get_string(data[24:].decode('utf-16'))                                                
-              if len(date_opened) < 15:
-                date_opened = '' #Invalid date entry
-              else:
-                date_opened += ' Local Time' # date in local system time
-            except:
-              date_opened = ''
+        # Apparent common values for Zip Subfolders. The value with \x01
+        # appears to contain an opened date, the other value does not.
+        if data[32:36] in ['\x10\x00\x01\x00', '\x10\x00\x00\x00'] \
+           or data[20:24] in ['\x10\x00\x01\x00', '\x10\x00\x00\x00']:
+          if data[32:36] in ['\x10\x00\x01\x00', '\x10\x00\x00\x00']:
+            date_offset, path_length_offset, path_offset = 36, 84, 92
+          else:
+            date_offset, path_length_offset, path_offset = 24, 60, 68
+          try:
+            # Zip subfolder names appear to always start at offset 92 
+            # (Win7/Vista/2008) or offset 68 (Pre-Vista) and contain 
+            # a variable length unicode string
+            path_length, = struct.unpack('I', data[path_length_offset:
+                                                  path_length_offset+4])
+            path_length *= 2
+            zip_folder_path = cls.get_string(data[path_offset:
+                                                  path_offset+path_length]\
+                                             .decode('utf-16'))                                                    
+            if zip_folder_path != '':
+              try:
+                # Zip subfolder entries contain a unicode string value at 
+                # offset 36 (Win7/Vista/2008) or offset 24 (Pre-Vista) that
+                # appears to be the date when the subfolder was opened /accessed
+                date_opened = cls.get_string(data[date_offset:]\
+                                             .decode('utf-16'))                                                
+                if len(date_opened) < 15:
+                  date_opened = '' #Invalid date entry
+                else:
+                  # Zip Subfolder date in local system time all other dates
+                  # will be represented in UTC
+                  date_opened += ' Local Time'
+              except:
+                date_opened = ''
             mru_data = cls(name=name,
                            path=path,
                            mru_type="Zip Subfolder",
-                           mru_value=zip_folder_path,
+                           mru_value=zip_folder_path + '\\',
                            zip_opened_date=date_opened)
-        except:
-          pass                                      
+          except:
+            pass                                 
       return mru_data
-
+      
     @classmethod
-    def parse_folder(cls, mru_type, name, path, data):
-      # Parses Folder, Zip File and Symbolic Link Folder MRU Entries
+    def parse_folder(cls, mru_type, name, path, data, size, start_offset):
+      # Parses Folder, Zip File, Hidden Folder and System protected folder
+      # MRU Entries. System Protected Folders have a slightly different format.
       # These containing the most data including shortname, longname, 
-      # and date attributes
+      # and date attributes. The start_offset value specifies where the 
+      # data parsing should start. This varies slightly between types.
       
       # Modification Date (original file date/time)
-      modified_date, = struct.unpack('H', data[8:10])
-      modified_time, = struct.unpack('H', data[10:12])
+      modified_date, = struct.unpack('H', data[start_offset:start_offset+2])
+      modified_time, = struct.unpack('H', data[start_offset+2:start_offset+4])
       if modified_date > 1 and modified_time > 0:
         try:
           mod = cls.convert_DOS_datetime_to_UTC(modified_date, modified_time)
@@ -464,23 +539,32 @@ def run_me():
           modified = ''
       else:
         modified = '' 
-
-      m_type = struct.unpack('B', data[12])# Always seems to be \x10 for folders
-      data_block1 = struct.unpack('B', data[13])# unknown value
-      short_name = cls.get_string(data[14:])
-      # The ptr variable will keep track of place in entry from here
-      ptr = len(short_name) + 14 
-
-      # Maintaining Alignment - Below handles files with odd (literally) 
+      
+      # Value seems to always be 0x10 for folders
+      m_type = struct.unpack('B', data[start_offset+4])
+      data_block1 = struct.unpack('B', data[start_offset+5])# unknown value
+              
+      short_name = cls.get_string(data[start_offset+6:])
+      ptr = len(short_name) + start_offset + 6
+      # Maintaining Alignment - Below handles files with odd (numerically) 
       # length short names. If short name length is odd, increment pointer 
-      # by 9, if even increment by 10
+      # by 9, if even increment by 10          
       if ptr % 2 != 0:
-        data_block2 = data[ptr:ptr+9] # unknown data block
-        ptr += 9
+        if mru_type in ['System Protected Folder']:
+          data_block2 = data[ptr:ptr+43] # unknown data block
+          ptr += 43
+        else:
+          data_block2 = data[ptr:ptr+9] # unknown data block
+          ptr += 9
       else:
-        data_block2 = data[ptr:ptr+10] # unknown data block
-        ptr +=10
-
+        if mru_type in ['System Protected Folder']:
+          data_block2 = data[ptr:ptr+43] # unknown data block
+          ptr += 44
+        else:
+          data_block2 = data[ptr:ptr+10] # unknown data block
+          ptr +=10        
+      
+      # Common structure across all values begins here
       # Creation Date (original file date/time) 
       creation_date, = struct.unpack('H', data[ptr:ptr+2])
       creation_time, = struct.unpack('H', data[ptr+2:ptr+4])
@@ -532,13 +616,24 @@ def run_me():
           long_name = short_name
       if not long_name:
         long_name = short_name
+      
       mru_data = cls(name=name,
                      path=path,
                      mru_type=mru_type,
                      mru_value=long_name + "\\",
                      modified_date=modified,
                      created_date=created,
-                     accessed_date=accessed)
+                     accessed_date=accessed)      
+      # A folder with no dates or with common offsets found in Zip Subfolder
+      # entries is probably inaccurately typed. This is probably
+      # a Zip Subfolder that just happens to have a folder type value
+      if (modified is '' and created is '' and accessed is '') \
+         or data[32:36] in ['\x10\x00\x01\x00', '\x10\x00\x00\x00'] \
+         or data[20:24] in ['\x10\x00\x01\x00', '\x10\x00\x00\x00']:
+        test_data = cls.parse_unknown_type(mru_type, name, path, data, size)
+        if test_data.zip_opened_date != "":
+          mru_data = test_data
+          
       return mru_data
 
     @classmethod
@@ -667,23 +762,21 @@ def run_me():
     
   if path_exists(root_key() + 
                  '\Local Settings\Software\Microsoft\Windows\shell\BagMRU'):
-
     regkey = \
       reg_get_required_key('\Local Settings\Software\Microsoft'
                            '\Windows\shell\BagMRU')
-    MRU_keys = list_all_mru_keys(regkey)
-    parsed_vals = process_bagmru_entries(MRU_keys)
+    MRU_keys = mru_instance.list_all_mru_keys(regkey)
+    parsed_vals = mru_instance.process_bagmru_entries(MRU_keys)
     parsed_mru_values.extend(parsed_vals)
 
   if path_exists(root_key() + 
                  '\Wow6432Node\Local Settings\Software\Microsoft'
                  '\Windows\shell\BagMRU'):
-
     regkey = \
       reg_get_required_key('\Wow6432Node\Local Settings\Software\Microsoft'
                            '\Windows\shell\BagMRU')
-    MRU_keys = list_all_mru_keys(regkey) 
-    parsed_vals = process_bagmru_entries(MRU_keys)
+    MRU_keys = mru_instance.list_all_mru_keys(regkey) 
+    parsed_vals = mru_instance.process_bagmru_entries(MRU_keys)
     parsed_mru_values.extend(parsed_vals)
 
   print_report(parsed_mru_values) 

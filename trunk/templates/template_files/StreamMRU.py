@@ -24,19 +24,20 @@
 #
 #
 # StreamMRU
-# Version 0.2
+# Version 0.3
 #
 # Kevin Moore - km@while1forensics.com
 # 
 
 pluginname = "StreamMRU"
-description = ""
+description = "Location size and location parameters for recently "\
+  "opened windows/folders. Displayed in order from newest to oldest."
 hives = "NTUSER"
-documentation = ""
+documentation = "http://support.microsoft.com/kb/235994"
 
 def run_me():
 
-  import struct
+  from struct import unpack
   import string
   from datetime import datetime
 
@@ -65,7 +66,8 @@ def run_me():
       for s in string_data:
         if s in string.printable:
           name.append(s)
-        else: break
+        else: 
+          break
       return ''.join(name)
 
     @classmethod
@@ -90,14 +92,13 @@ def run_me():
       # Each MRUListEx entry is 4 bytes (uint) and \xFF\xFF\xFF\xFF 
       # signifies the end of the entries data
       while mrulistex_registry_value[index:index+4] != '\xFF\xFF\xFF\xFF':
-        mru, = struct.unpack('I', mrulistex_registry_value[index:index+4])
+        mru, = unpack('I', mrulistex_registry_value[index:index+4])
         mru_order.append(mru)
         index += 4
       return mru_order 
 
     @classmethod
-    def determine_mru_type(cls, value):
-      # Determines the type of BagMRU Entry for subsequent processing
+    def parse_stream_data(cls, key_name, key_path, mru_value_data):
       mru_types = {'\x31':'Folder',
                    '\xc3':'Remote Share',
                    '\x41':'Windows Domain',
@@ -108,67 +109,72 @@ def run_me():
                    '\x2f':'Volume',
                    '\x32':'Zip File', 
                    '\x48':'My Documents', 
-                   '\x00':'Variable',
                    '\xb1':'File Entry', 
                    '\x71':'Control Panel', 
-                   '\x61':'URI'}
-      if value in mru_types:
-        return mru_types[value]
-      else: # for data types that we don't know about yet and as placeholder
-        return 'Unrecognized Type'             
-
-    @classmethod
-    def parse_stream_data(cls, key_name, key_path, data):
+                   '\x61':'URI'}        
       # Parses through stream entry for individual values
       stream_data = []
-      index = 0
-      prev_val = ''
-      while index < len(data):
-        size, = struct.unpack('H', data[index:index+2]) # size of bag entry
-        if size == 0: # invalid entry - no data
+      offset_in_mru_data = 0
+      previous_mru_data = ''
+      while offset_in_mru_data < len(mru_value_data):
+        try:
+          size, = unpack('H', mru_value_data[offset_in_mru_data:
+                                             offset_in_mru_data+2])
+          if size == 0: # invalid entry - no data
+            break
+        except:
           break
-        stream, concatenate_value = \
-          cls.parse_stream_entry(offset_in_entry=index, 
-                                 data_segment=data[index:index+size], 
-                                 registry_key_path=key_path, 
-                                 registry_entry=key_name, 
-                                 previous_value=prev_val)
-        stream_data.append(stream)
+        
+        try:
+          # Determines type of stream entry for processing 
+          mru_type_value = mru_value_data[offset_in_mru_data+2]
+          if mru_type_value not in mru_types:
+            # These values are associated with CD-Rom Streams 
+            # and are 16-bytes long
+            offset_in_mru_data += 16
+            # The parent entry encompasses the subentry
+            mru_type_value = mru_value_data[offset_in_mru_data+2]          
+
+          mru_type = mru_types[mru_type_value]
+          data_segment = mru_value_data[offset_in_mru_data:
+                                        offset_in_mru_data + size]
+          if mru_type in ['System Folder']:                                         
+            stream_mru_instance = \
+              cls.parse_system_entry(data_segment=data_segment, 
+                                     offset_in_entry=offset_in_mru_data, 
+                                     registry_key_path=key_path, 
+                                     registry_entry=key_name)
+          elif mru_type in ['Volume']:
+            stream_mru_instance = \
+              cls.parse_volume_entry(data_segment=data_segment, 
+                                     offset_in_entry=offset_in_mru_data, 
+                                     registry_key_path=key_path, 
+                                     registry_entry=key_name,
+                                     previous_value=previous_mru_data)          
+          elif mru_type in ['Folder', 'Remote Share', 'Windows Domain',
+                            'Computer Name', 'Microsoft Windows Network', 
+                            'Entire Network', 'Zip File', 'My Documents', 
+                            'File Entry', 'Control Panel', 'URI']:
+            stream_mru_instance = \
+              cls.parse_folder_entry(data_segment=data_segment, 
+                                     offset_in_entry=offset_in_mru_data, 
+                                     registry_key_path=key_path, 
+                                     registry_entry=key_name,
+                                     previous_value=previous_mru_data)      
+        except:
+          # For issues in processing, don't quit but flag as an invalid entry
+          stream_mru_instance = cls(offset_in_entry=offset_in_mru_data, 
+                                    key_name=key_name, 
+                                    full_key_path=key_path, 
+                                    mru_type='Unrecognized', 
+                                    mru_value='', 
+                                    concatenated_path=previous_mru_data)
+        stream_data.append(stream_mru_instance)
+        previous_mru_data += stream_mru_instance.mru_value + '\\'   
         # Append parsed stream value to rebuild path from 
         # multiple entries in stream data
-        prev_val += concatenate_value                                                 
-        index += size # Jump to next entry in stream value
+        offset_in_mru_data += size # Jump to next entry in stream value
       return stream_data # returns all values from stream entry
-
-    @classmethod
-    def parse_stream_entry(cls, offset_in_entry=0, data_segment=None, 
-                           registry_key_path=None, registry_entry=None, 
-                           previous_value=None):
-      # Determines type of stream entry for processing 
-      mru_type_value = data_segment[2] # determines stream entry type
-      mru_type = cls.determine_mru_type(mru_type_value)
-  
-      # System Entries
-      if mru_type == 'System Folder':                                         
-        stream_mru_instance = cls.parse_system_entry(data_segment=data_segment, 
-                                   offset_in_entry=offset_in_entry, 
-                                   registry_key_path=registry_key_path, 
-                                   registry_entry=registry_entry)
-      # Drive letter entries
-      elif mru_type == 'Volume':
-        stream_mru_instance = cls.parse_drive_entry(data_segment=data_segment, 
-                                  offset_in_entry=offset_in_entry, 
-                                  registry_key_path=registry_key_path, 
-                                  registry_entry=registry_entry,
-                                  previous_value=previous_value)
-      #All Other Files and Folders
-      else:
-        stream_mru_instance = cls.parse_folder_entry(data_segment=data_segment, 
-                                       offset_in_entry=offset_in_entry, 
-                                       registry_key_path=registry_key_path, 
-                                       registry_entry=registry_entry,
-                                       previous_value=previous_value)
-      return stream_mru_instance
 
     @classmethod
     def parse_folder_entry(cls, data_segment=None, offset_in_entry=0, 
@@ -177,14 +183,13 @@ def run_me():
       stream_mru_entry_types = {'\x32':'File',
                                 '\x31':'Folder',
                                 '\x3a':'File'}
-      size, = struct.unpack('H', data_segment[0:2]) # Size of bag entry
-      mru_type = data_segment[2] 
+      mru_type = data_segment[2]
       # size of file/folder - for shortcuts, size of lnk file
-      file_size, = struct.unpack('I', data_segment[4:8])
+      file_size, = unpack('I', data_segment[4:8])
   
       # Modification Date (original file date/time)
-      modified_date, = struct.unpack('H', data_segment[8:10])
-      modified_time, = struct.unpack('H', data_segment[10:12])
+      modified_date, = unpack('H', data_segment[8:10])
+      modified_time, = unpack('H', data_segment[10:12])
       if modified_date > 1 and modified_time > 0: 
         try:
           mod = cls.convert_DOS_datetime_to_UTC(modified_date, modified_time)
@@ -194,8 +199,8 @@ def run_me():
       else:
         modified = '' # Invalid or corrupt date values
   
-      entry_type, = struct.unpack('B', data_segment[12]) 
-      data_block1 = data_segment[13] # unknown data block
+      #entry_type, = unpack('B', data_segment[12]) 
+      #data_block1 = data_segment[13] # unknown data block
       short_name = cls.get_string(data_segment[14:]) # DOS8.3 Name
       
       # ptr will keep track of place in file from here
@@ -210,9 +215,9 @@ def run_me():
         data_block2 = data_segment[ptr:ptr+10] # unknown data block
         ptr +=10
   
-      # Creation Date (original file date/time) 
-      creation_date, = struct.unpack('H', data_segment[ptr:ptr+2]) 
-      creation_time, = struct.unpack('H', data_segment[ptr+2:ptr+4]) 
+      # Creation Date (original file date/time)
+      creation_date, = unpack('H', data_segment[ptr:ptr+2]) 
+      creation_time, = unpack('H', data_segment[ptr+2:ptr+4]) 
       if creation_date > 1 and creation_time > 0: 
         try:
           crt = cls.convert_DOS_datetime_to_UTC(creation_date, creation_time) 
@@ -223,8 +228,8 @@ def run_me():
         created = '' # Invalid or corrupt date values
   
       # Last Accessed Date (original file date/time) 
-      accessed_date, = struct.unpack('H', data_segment[ptr+4:ptr+6])
-      accessed_time, = struct.unpack('H', data_segment[ptr+6:ptr+8]) 
+      accessed_date, = unpack('H', data_segment[ptr+4:ptr+6])
+      accessed_time, = unpack('H', data_segment[ptr+6:ptr+8]) 
       if accessed_date > 1 and accessed_time > 0:
         try:
           acc = cls.convert_DOS_datetime_to_UTC(creation_date, creation_time) 
@@ -236,7 +241,7 @@ def run_me():
   
       # Check value to determine how far to move pointer. Varies based on
       # operating system
-      check_value, = struct.unpack('B', data_segment[ptr+8])
+      check_value, = unpack('B', data_segment[ptr+8])
   
       if check_value == 20: # XP & 2K3
         # Unicode name string is null terminated, add 1 to keep valid position
@@ -266,7 +271,7 @@ def run_me():
       if mru_type in stream_mru_entry_types:
         mru_type_string = stream_mru_entry_types[mru_type]
       else:
-        mru_type_string = "Unknown"
+        mru_type_string = "Unrecognized Type"
       stream = cls(offset_in_entry=offset_in_entry, 
                    original_file_size=file_size, 
                    key_name=registry_entry, 
@@ -277,11 +282,10 @@ def run_me():
                    modified_date=modified, 
                    created_date=created, 
                    accessed_date=accessed)
-  
-      return stream, long_name + '\\' 
+      return stream
     
     @classmethod
-    def parse_drive_entry(cls, data_segment=None, offset_in_entry=0,
+    def parse_volume_entry(cls, data_segment=None, offset_in_entry=0,
                           registry_key_path=None, registry_entry=None, 
                           previous_value=""):
       # Parses MRU Entries classified as Drive in mru_type
@@ -291,44 +295,34 @@ def run_me():
                    full_key_path=registry_key_path, 
                    mru_type='Drive', 
                    mru_value=drive_letter, 
-                   concatenated_path=previous_value + drive_letter + '\\')
-      return stream, drive_letter + '\\'
+                   concatenated_path=previous_value + drive_letter)
+      return stream
 
     @classmethod
     def parse_system_entry(cls, data_segment=None, offset_in_entry=0,
                           registry_key_path=None, registry_entry=None):
-  
       # Entry for System Folder -  see dictionary below
       # These entries do not contain date/time values
-  
       system_types = {'\x50':'My Computer', 
                       '\x60':'Recycle Bin', 
                       '\x78':'Recycle Bin', 
                       '\x58':'My Network Places', 
                       '\x48':'My Documents', 
                       '\x42':'Application File Dialog'}
-  
-      size, = struct.unpack('H', data_segment[0:2]) # Size of MRU entry
       system_type_value = data_segment[3]
   
       if system_type_value in system_types:
         system_entry_type = system_types[system_type_value]
-        stream = cls(offset_in_entry=offset_in_entry, 
-                     key_name=registry_entry,
-                     full_key_path=registry_key_path, 
-                     mru_type='System Entry',
-                     mru_value=system_entry_type,
-                     concatenated_path=system_entry_type + ':')
       else:
-        system_entry_type = 'Unrecognized System Type:'
-        stream = cls(offset_in_entry=offset_in_entry, 
-                     key_name=registry_entry,
-                     full_key_path=registry_key_path, 
-                     mru_type='System Entry',
-                     mru_value=system_entry_type,
-                     concatenated_path=system_entry_type + ':')
-  
-      return stream, system_entry_type +':'
+        system_entry_type = 'Unrecognized System Type'
+        
+      stream = cls(offset_in_entry=offset_in_entry, 
+                   key_name=registry_entry,
+                   full_key_path=registry_key_path, 
+                   mru_type='System Entry',
+                   mru_value=system_entry_type,
+                   concatenated_path=system_entry_type)
+      return stream
 
   def process_stream_mru_keys(key, values):
     vals = []

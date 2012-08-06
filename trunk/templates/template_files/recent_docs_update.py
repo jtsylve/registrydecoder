@@ -26,78 +26,73 @@
 # ver 1.0 
 # 07/18/2011
 #
-# Updated by Kevin Moore - CERT - kevinm@cert.org
-# 11/04/2011
+# Updated by Kevin Moore - km@while1forensics.com
+# 7/12/12
 
 pluginname = "Recent Docs Ordered"
-description = "Displays files and folders recently accessed by this user and ordered by their associated MRUListEx value"
+description = "Displays files and folders recently accessed by this user " \
+  "and ordered by their associated MRUListEx value"
 hive = "NTUSER"    
-    
-def run_me():
-    
-    def chunks(l, n):
-        list = []
-        for i in range(0, len(l), n):
-            list.append(str(l[i:i+n]))
-        return list
-    
-    def parse_mrulistex(name, data):
-        
-        import struct
-        
-        mru_order = []      
-        ptr = 0
-        
-        while data[ptr:ptr+4] != '\xFF\xFF\xFF\xFF':                                   # Each MRUListEx entry is 4 bytes (uint) and \xFF\xFF\xFF\xFF signifies the end of the entries data
-            
-            mru, = struct.unpack('I', data[ptr:ptr+4])                                 # Iterate through the file and gather a list of integer values
-            mru_order.append(mru)
-            ptr += 4
-                    
-        return mru_order                                                               # Return the order list so we can compare the values to our RecentDocs entries
-    
-    # END FUNCTION - parse_mrulistex
-    
-    def get_values(key):
-        
-        entry_values = {}
-        
-        reg_entries = reg_get_values(key)
-    
-        for val in reg_entries:
-            
-            name = reg_get_value_name(val)
-            
-            if name == 'MRUListEx':                                                     # MRUListEx provides an ordered list of when RecentDocs entries were accessed
-                data = reg_get_raw_value_data(val)                                      # Need raw value data to read MRUList entry values
-                order = parse_mrulistex(name, data)                                     # Gathers a list of ordered entry values (number to associate RecentDocs values)
-                split_mrulist = chunks(order, 20)
-                reg_report(('MRUListEx Order: ', '\n'.join(split_mrulist)))                            # Prints a list of the MRUListEx ordered list for reference)
-            else:
-                data = reg_get_value_data(val)
-                entry_values[int(name)] = data                                          # If the data is not a list add to a dictionary for reference, key value of dictionary is integer of Recent Docs entry
-        
-        for i in order:
-            try:
-                reg_report((entry_values[i],str(i)))                                    # Once we have gathered an order list and all our RecentDocs values, print them out in the order in which they were last accessed
-            except:
-                reg_report(('***ERROR: Unidentified MRUList Entry', str(i)))            # Not sure if this can happen, but don't want to the script to stop processing if it does
-         
-        reg_report((''))   
-    # END FUNCTION - get_values
-    
-    # Start of Plugin's processing...
-                
-    key_path = "\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs"
-    key = reg_get_required_key(key_path)    
-    report((key_path, reg_get_lastwrite(key)))                                          # Header format for each RecentDocs folder is: RegistryPath, LastWrittenDate  
-    get_values(key)                                                                     # Get Root Entries under RecentDocs folder
-    
-    subkeys = reg_get_subkeys(key)                                                      # RecentDocs folder sometimes contains subfolders
-    
-    for key in subkeys:
-        
-        report((key_path + "\\" + reg_get_key_name(key), reg_get_lastwrite(key)))       # Subfolder report value header: RegistryPath, LastWrittenDate 
-        get_values(key)                                                                 # Get Values from Subkey
 
+def run_me():
+
+  import struct
+
+  def chunks(l, n):
+    list = []
+    for i in range(0, len(l), n):
+      list.append(str(l[i:i+n]))
+    return list
+
+  def determine_mru_order(reg_value_data):
+    mru_order = []      
+    ptr = 0
+    # Each MRUListEx entry is 4 bytes (uint) and \xFF\xFF\xFF\xFF 
+    # signifies the end of the entries data
+    while reg_value_data[ptr:ptr+4] != '\xFF\xFF\xFF\xFF':                                   
+      mru, = struct.unpack('I', reg_value_data[ptr:ptr+4])
+      mru_order.append(mru)
+      ptr += 4
+    return mru_order
+
+  def get_recent_doc_values(key):
+    entry_values = {}
+    recent_doc_entries = reg_get_values(key)
+    order = None
+    for value in recent_doc_entries:
+      name = reg_get_value_name(value)
+      # MRUListEx provides an ordered list of when RecentDocs 
+      # entries were accessed
+      if name.lower() in ['viewstream']:
+        continue # Research needs to be conducted to determine if any data of
+                 # value can be gained from this key
+      if name.lower() in ['mrulistex']:
+        value_data = reg_get_raw_value_data(value)
+        order = determine_mru_order(value_data)
+        split_mrulist = chunks(order, 20)
+        # Prints a list of the MRUListEx ordered list for reference)
+        reg_report(('MRUListEx Order: ', '\n'.join(split_mrulist)))
+      else:
+        value_data = reg_get_value_data(value)
+        entry_values[name] = value_data
+    if order is None:
+      for k, v in entry_values.iteritems():
+        reg_report((v, str(k)))
+    else:
+      for item in order:
+        try:
+          item = str(item)
+          reg_report((entry_values[item],str(item)))
+        except:
+          reg_report(('***ERROR: Unidentified MRUList Entry', str(item)))
+    
+  key_path = "\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs"
+  key = reg_get_required_key(key_path)    
+  report((key_path, reg_get_lastwrite(key))) 
+  get_recent_doc_values(key) # Get Root Entries under RecentDocs folder
+  subkeys = reg_get_subkeys(key) # Get subfolder values
+
+  for key in subkeys:
+    report((key_path + "\\" + reg_get_key_name(key), reg_get_lastwrite(key)))
+    get_recent_doc_values(key)
 
