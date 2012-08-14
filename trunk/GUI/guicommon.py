@@ -530,7 +530,7 @@ def hide_tab_widgets(tab):
     tab.label1.hide()
     tab.label2.hide() 
 
-def setup_diff_report(self, tab, orig_only, diff_only):
+def setup_diff_report(self, tab, orig_only, diff_only, common_elements):
 
     global global_gui
 
@@ -538,7 +538,8 @@ def setup_diff_report(self, tab, orig_only, diff_only):
     
     # save the lists for exporting
     tab.orig_only = orig_only
-    tab.diff_only = diff_only    
+    tab.diff_only = diff_only
+    tab.common    = common_elements
 
     tab.cbox.hide()
     tab.label1.hide()
@@ -548,10 +549,27 @@ def write_diff(fd, ents, char):
     # for each entry in the list
     for ent in ents:
 
+        if not ent:
+            continue
+
         val = char + " "
 
-        for item in ent:
-            val = val + item + "\t"
+        if type(ent) == list or type(ent) == tuple:
+
+            for item in ent:
+                val = val + str(item) + "\t"
+
+        # a searchmatch from the search tab
+        elif hasattr(ent, "node"):
+            
+            val = val + "%s\t%s\t%s" % (ent.node.fullpath, ent.name, ent.data)
+        
+        elif type(ent) == int:
+
+            val = val + "%d" % ent
+
+        else:
+            print "ent: unknown type: %s | %s" % (type(ent), str(ent))
 
         val = val[:-1] + "\n"
 
@@ -568,10 +586,14 @@ def createDiffReport():
         return
 
     filename = str(fname)
+
+    if not filename.endswith(".txt"):
+        filename = filename + ".txt"
     
     fd = codecs.open(filename, "w+", encoding="UTF-8")  
     
     write_diff(fd, curtab.orig_only, "<")
+    write_diff(fd, curtab.common,    "=")
     write_diff(fd, curtab.diff_only, ">")
 
     fd.close()

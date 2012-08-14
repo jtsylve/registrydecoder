@@ -335,11 +335,11 @@ class plugintab:
         idxs = self.gcommon.get_idxs(data_ents)
 
         # will be real values if we decide to report diff output
-        tab = self.gf.plugin_export_form(self, -42, orig.plugin.pluginname, "Diff Results", is_diff=1)
+        tab = self.gf.plugin_export_form(self, -42, "Diff: " + orig.plugin.pluginname, "Diff Results", is_diff=1)
         
         tab.do_not_export = 1
 
-        self.gcommon.setup_diff_report(self, tab, orig_only, new_only)
+        self.gcommon.setup_diff_report(self, tab, orig_only, new_only, orig_results)
 
         tm = tmclass(data_list, orig.tm.plugin_set_header)
 

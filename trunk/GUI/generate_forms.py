@@ -44,8 +44,8 @@ class generate_forms:
 
         obj.setObjectName(name)
 
-    def generate_search_view_form(self, ref_obj, fileid, tab_name, label_text, results): 
-        return self.search_plugin_export_form(ref_obj, fileid, tab_name, label_text, results)
+    def generate_search_view_form(self, ref_obj, fileid, tab_name, label_text, results, is_diff=0): 
+        return self.search_plugin_export_form(ref_obj, fileid, tab_name, label_text, results=results, is_diff=is_diff)
 
     def plugin_export_form(self, ref_obj, fileid, tab_name, label_text, is_diff=0): 
         return self.search_plugin_export_form(ref_obj, fileid, tab_name, label_text, is_diff=is_diff)
@@ -114,6 +114,7 @@ class generate_forms:
         if is_diff:
             ref_obj.gui.connect(createReportPushButton, SIGNAL("clicked()"), ref_obj.gcommon.createDiffReport)
             new_tab.diff_tab = 1
+            label_12.setText(QString(label_text + " diff legend: red = top hive only, black = in both hives, blue = bottom hive only"))
         else:
             ref_obj.gui.connect(createReportPushButton, SIGNAL("clicked()"), ref_obj.createReportClicked)  
 

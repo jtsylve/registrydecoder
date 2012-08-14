@@ -144,10 +144,13 @@ class report_handler:
             repinst = self.export_report(currentTab, tab, cinfo, 1)
             i = i + 1
         
-        if repinst:
+        if i > 0 and repinst:
             repinst.close_report()
          
-        self.gui.msgBox("Report Successfully Created") 
+            self.gui.msgBox("Report Successfully Created") 
+
+        else:
+            self.gui.msgBox("No Report Created. No Active Analysis Tabs were found.")
 
     # clicked from indiviual plugin output forms 
     def createReportClicked(self, context):

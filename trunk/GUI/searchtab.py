@@ -166,16 +166,20 @@ class searchtab:
 
         return "Results for searching %s against %s" % (searchterm, filepath)
 
-    def get_tab_text(self, searchterm):
+    def get_tab_text(self, searchterm, is_diff):
 
-        return "Search Results - %s" % searchterm
+        if is_diff:
+            ret = "Diff: "
+        else:
+            ret = ""
+        return ret  + "Search Results - %s" % searchterm
 
-    def do_gen_tab(self, sp, sr, fileid):
+    def do_gen_tab(self, sp, sr, fileid, is_diff=0):
 
-        h = self.get_tab_text(sp.searchterm)
+        h = self.get_tab_text(sp.searchterm, is_diff)
         l = self.get_label_text(sp.searchterm, sr.filepath)
 
-        return self.gf.generate_search_view_form(self, fileid, h, l, sr.results)
+        return self.gf.generate_search_view_form(self, fileid, h, l, sr.results, is_diff)
 
     # genereates a search result tab and fills the GUI table
     def generate_tab(self, sp, sr, fileid, color_idxs=[]):
@@ -257,19 +261,21 @@ class searchtab:
         # get values to report out of search_match lists
         data_ents = [orig_only, orig_results, new_only]
         fileids   = [orig_fileid, orig_fileid, new_fileid]        
- 
+
         # idxs to color on
         idxs = self.gcommon.get_idxs(data_ents)
 
         # will be real values if we decide to report diff output
         sr = self.gcommon.search_results("", "", "", data_list, -42)
-        tab = self.do_gen_tab(sp, sr, -42)
+        tab = self.do_gen_tab(sp, sr, -42, is_diff=1)
         
         tab.do_not_export = 1
+        
+        self.gcommon.setup_diff_report(self, tab, orig_only, new_only, orig_results)
 
         (report_vals, match_idxs) = self.get_report_match_info(data_ents, fileids)
         
-        self.gcommon.hide_tab_widgets(tab)
+        #self.gcommon.hide_tab_widgets(tab)
 
         self.insert_results(tab, report_vals, match_idxs, sp.searchterm, -42, idxs)
 
@@ -329,7 +335,8 @@ class searchtab:
             nodevals = self.tapi.names_for_search(searchterm, partialsearch)
 
             for nodeval in nodevals:
-                matches.append(searchmatch(1, nodeval.node, nodeval.name))
+                
+                matches.append(searchmatch(1, nodeval.node, nodeval.name, nodeval.data))
             
         if searchData:
             
@@ -372,7 +379,7 @@ class searchtab:
         
         tm = tmclass(report_vals)
         
-        self.rm.report_tab_info(report, tm, tab, self.active_tabs, fileid, "Search", "Search Term", searchterm, match_idxs=match_idxs, color_idxs = color_idxs)
+        self.rm.report_tab_info(report, tm, tab, self.active_tabs, fileid, "Search", "Search Term", "Diff: " + searchterm, match_idxs=match_idxs, color_idxs = color_idxs)
 
     def createReportClicked(self): 
         self.rh.createReportClicked("Search Single")

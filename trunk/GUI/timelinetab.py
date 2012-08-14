@@ -60,11 +60,23 @@ class timelinetab:
         outputfile = self.gui.timelineLineEdit.text()
     
         if not outputfile:
-            outputfile = unicode(outputfile)
-            if len(outputfile) == 0:
-                self.gui.msgBox("No output file was entereted!")
-                return None
+            self.gui.msgBox("No output file was entereted!")
+            return None
+
+        outputfile = unicode(outputfile)
         
+        if len(outputfile) == 0:
+            self.gui.msgBox("No output file was entereted!")
+            return None
+
+        if self.gui.excelRadioButton.isChecked():
+            ext = ".tsv"
+        else:
+            ext = ".txt"
+
+        if not outputfile.endswith(ext):
+            outputfile = outputfile + ext
+ 
         try:
             fd = codecs.open(outputfile, "a+", encoding="UTF-8")
         except:
