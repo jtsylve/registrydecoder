@@ -168,7 +168,7 @@ class searchtab:
 
     def get_tab_text(self, searchterm):
 
-        return "Seach Results - %s" % searchterm
+        return "Search Results - %s" % searchterm
 
     def do_gen_tab(self, sp, sr, fileid):
 

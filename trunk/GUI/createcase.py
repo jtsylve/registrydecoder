@@ -99,7 +99,7 @@ class caseInformation:
                 # ask the user if they are adding evidence to a new case
                 # if not, error out
                 # if, return 2
-                ok = self.gui.yesNoDialog("Chosen directory already oontains files.", "Are you adding files to an existing case?")
+                ok = self.gui.yesNoDialog("Chosen directory already contains files.", "Are you adding files to an existing case?")
                 if ok:
                     ret = 2
                 else:

@@ -111,7 +111,7 @@ class plugintab:
         selected_plugins = self.gui.pluginListWidget.selectedItems()
 
         if len(selected_plugins) == 0:
-            self.gui.msgBox("No plugin was seletected to be run.")
+            self.gui.msgBox("No plugin was selected to be run.")
             return selected_plugins
 
         # all the user choosen plugins
@@ -211,12 +211,12 @@ class plugintab:
 
         return "Results for running %s against %s" % (plugin, filepath)
 
-    def generate_tab(self, r):   
+    def generate_tab(self, result):   
  
         # generate form for output
-        tab = self.gf.plugin_export_form(self, r.fileid, r.plugin.pluginname, self.get_label_text(r.plugin.pluginname, r.filepath)) 
+        tab = self.gf.plugin_export_form(self, result.fileid, result.plugin.pluginname, self.get_label_text(result.plugin.pluginname, result.filepath)) 
         
-        self.rm.report_tab_info(self.rm.display_reports[0], r.tm, tab, self.active_tabs, r.fileid, "Plugin", "Plugin Name", r.plugin.pluginname)
+        self.rm.report_tab_info(self.rm.display_reports[0], result.tm, tab, self.active_tabs, result.fileid, "Plugin", "Plugin Name", result.plugin.pluginname)
 
         # the results are now in the GUI...
 
