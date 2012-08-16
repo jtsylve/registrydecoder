@@ -4,14 +4,14 @@
 
 = What is the current version of Registry Decoder? = 
 
-1.0
+1.4
 
 = What features does Registry Decoder have? =
 
    * Hive Browsing
    * Hive Searching
    * Plug-in System
-   * Differencing of Registry Files
+   * Differencing of Registry Analysis
    * Timelining
    * Path based analysis
    * Automated Reporting
@@ -30,7 +30,8 @@
    * HTML
    * PDF
    * XLS
+   * CSV
 
 = How can I learn how to use Registry Decoder? =
 
-For basic usage help, you can read our instructions guide, and for more advanced usage and hands-on training, please see our private [http://www.digitalforensicssolutions.com/registrydecoder/content/training training options.] 
+For basic usage help, you can read our instructions guide, and for more advanced usage and hands-on training, please see our private [http://digitalforensicssolutions.com/registrydecoder/training/ training course.] 
