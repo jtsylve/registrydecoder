@@ -232,7 +232,7 @@ def run_me():
       accessed_time, = unpack('H', data_segment[ptr+6:ptr+8]) 
       if accessed_date > 1 and accessed_time > 0:
         try:
-          acc = cls.convert_DOS_datetime_to_UTC(creation_date, creation_time) 
+          acc = cls.convert_DOS_datetime_to_UTC(accessed_date, accessed_time) 
           accessed = acc.strftime(date_format)
         except:
           accessed = '' # corrupt or invalid date value

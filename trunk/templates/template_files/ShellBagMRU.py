@@ -578,11 +578,11 @@ def run_me():
         created = '' 
 
       # Last Accessed Date (original file date/time) 
-      a_date, = struct.unpack('H', data[ptr+4:ptr+6])
-      a_time, = struct.unpack('H', data[ptr+6:ptr+8])
-      if a_date > 1 and a_time > 0:
+      accessed_date, = struct.unpack('H', data[ptr+4:ptr+6])
+      accessed_time, = struct.unpack('H', data[ptr+6:ptr+8])
+      if accessed_date > 1 and accessed_time > 0:
         try:
-          acc = cls.convert_DOS_datetime_to_UTC(creation_date, creation_time)
+          acc = cls.convert_DOS_datetime_to_UTC(accessed_date, accessed_time)
           accessed = acc.strftime(date_format)
         except:
           accessed = ''
