@@ -1,0 +1,16 @@
+- gui into a thread
+
+- make file-based report modules diff-compabilitle?
+
+- s/templates/plugins/
+
+- pylint to check for unused code (likely not deleted when moved elsewehre)
+
+- consistent timestamp across search/report/plugins - search strftime
+
+- add evidence aliases to command line and test from cmdline & GUI
+
+---- needs testing ------
+
+1) add regdecoerlive database from cmdline & from gui
+

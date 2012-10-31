@@ -1,0 +1,11 @@
+--- this is for the annoucnment of 2.0 with new stuff --
+
+1) gui & cmdline contain all functionality
+2) filtering down to seconds (used to be only days)
+3) vss integration? 
+4) output reports properly
+
+---- Wish list ----
+
+1) unicode search (new case processing)
+2) multi threaded case processing
