@@ -97,7 +97,7 @@ class cmdline_main:
         self.RD.pathbased.write_path_results(results, self.report_format, self.report_filename)
 
     def _parse_time_options(self, parser):
-        parser.add_option("-t", "--timeline_format", dest="timeline_format", help="Format to write timeline to (.txt/.tsv)", default="")
+        parser.add_option("-t", "--timeline_format", dest="timeline_format", help="Format to write timeline to (txt/tsv)", default="")
         parser.add_option("-T", "--timeline_file",   dest="timeline_file",   help="File to write timeline to")
 
     def _run_timeline(self, parser, args):
@@ -149,7 +149,7 @@ class cmdline_main:
     def _parse_search_options(self, parser):
         parser.add_option("-s",  "--searchterm", dest="searchterm",       help="Single search term to be searched", default="")
         parser.add_option("-f" , "--searchfile", dest="searchfile",       help="File of search terms",              default="")
-        parser.add_option("-p",  "--searchpartial", dest="searchpartial", help="Search partial", default=0)                              
+        parser.add_option("-p",  "--searchpartial", dest="searchpartial", help="Search partial", action="store_true") 
         parser.add_option("-k",  "--searchkeys",   dest="searchkeys",     help="Search keys",    default=1)
         parser.add_option("-n",  "--searchnames",  dest="searchnames",    help="Search names ",  default=1)
         parser.add_option("-v",  "--searchvalues", dest="searchvalues",   help="Search values",  default=1)
@@ -163,7 +163,6 @@ class cmdline_main:
         return ret
 
     def _do_search(self, searchterm, searchfile, searchpartial, searchkeys, searchnames, searchvalues, start_date, end_date):
-        searchpartial = self._parse_boolean_arg(searchpartial)
         searchkeys    = self._parse_boolean_arg(searchkeys)
         searchnames   = self._parse_boolean_arg(searchnames)
         searchvalues  = self._parse_boolean_arg(searchvalues)
@@ -305,7 +304,10 @@ class cmdline_main:
                 if default != None:
                     default = "%s" % str(default)
                     if len(default) > 0:
-                        default = "- %s" % default
+                        if str(default) == "('NO', 'DEFAULT')":
+                            default = ""
+                        else:
+                            default = "- %s" % default
 
                 write_msg("%-20s - %-30s %s" % (option, msg, default))
             
@@ -370,14 +372,13 @@ class cmdline_main:
 
         parser.add_option("-c", "--casefolder",    dest="casefolder",    help="The case folder to analyze", default="")
         parser.add_option("-i", "--fileids",       dest="fileids",       help="Comma seperated list of fileids to analyze from the case folder", default="")
-        parser.add_option("-C", "--configfile",    dest="configfile",    help="The configuration file for processing",           default="")
         parser.add_option("-r", "--report_format", dest="report_format", help="Format to write report (default is to terminal)", default="")
         parser.add_option("-o", "--output_file",   dest="output_file",   help="Output file to write report",                     default="")
         parser.add_option("-P", "--plugin_dirs",   dest="plugin_dirs",   help="Extra directory to load plugins from",            default="")
         parser.add_option("-b", "--before",        dest="end_date",      help="Filter results to entries before this date", default="")
         parser.add_option("-a", "--after",         dest="start_date",    help="Filter results to entries after this date",  default="")
-        parser.add_option("-d", "--diff",          dest="perform_diff",  help="Perform diff analyais",                      default=0)
-        parser.add_option("-D", "--disable_input", dest="disable_input", help="Disable input",                              default=0) 
+        parser.add_option("-d", "--diff",          dest="perform_diff",  help="Perform diff analyais",  action="store_true")
+        parser.add_option("-D", "--disable_input", dest="disable_input", help="Disable input (batch mode)", action="store_true")
 
         # this lets the usage message differeniate between global options and per-analysis type ones
         # needs to always be the last option added here
@@ -422,7 +423,7 @@ class cmdline_main:
 
             (options, optargs) = parser.parse_args(args[2:])
 
-            self.disable_input = self._parse_boolean_arg(options.disable_input)
+            self.enable_input = not options.disable_input
 
             # setup global args for analysis
             if not action in ["create_case"]:
@@ -443,7 +444,7 @@ class cmdline_main:
                 else:
                     self.report_filename = self._parse_report_filename(options.output_file)
                 
-                self.perform_diff = self._parse_boolean_arg(options.perform_diff)
+                self.perform_diff = options.perform_diff
                 
                 if self.perform_diff:
                     if len(self.fileids) != 2:
@@ -485,7 +486,7 @@ class cmdline_main:
     # fakes a message box by writing a message and waiting for input (Enter)
     def msgBox(self, msg):
         write_msg(msg)
-        if self.disable_input == 0:
+        if self.enable_input == True:
             discard = raw_input("Press Enter to Proceed")
 
     # This can be suppressed or converted to only write one line    
