@@ -325,7 +325,7 @@ class cmdline_main:
         user_fileids = fileids_opt.split(",")
 
         # fileid 0 only specifices to run on all files
-        if len(user_fileids) == 1 and user_fileids[0] == 0:
+        if len(user_fileids) == 1 and user_fileids[0] == "0":
             ret = case_fileids
         else:
             ret =  []
