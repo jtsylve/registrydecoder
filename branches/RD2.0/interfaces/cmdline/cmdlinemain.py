@@ -286,6 +286,8 @@ class cmdline_main:
             # NIST_TODO
             # set alias
 
+        self.RD.createcase.setupCaseDir()
+
         self.RD.createcase.process_case_files()        
 
     # NIST_TODO              
