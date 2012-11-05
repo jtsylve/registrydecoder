@@ -187,7 +187,7 @@ class create_case:
         try:
             os.mkdir(os.path.join(regdir,"singlefiles"))
         except:
-            self.UI.msgBox("WARNING: Registry Decoder was unable to the singlefiles directory. Please check that you have write permission to the case folder.")
+            self.UI.msgBox("WARNING: Registry Decoder was unable to create the singlefiles directory. Please check that you have write permission to the case folder.")
 
         return 1    
 
