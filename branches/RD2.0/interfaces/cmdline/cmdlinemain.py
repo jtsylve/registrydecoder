@@ -269,6 +269,12 @@ class cmdline_main:
         self.acquire_current = int(acq_current) == 1
         self.acquire_backups = int(acq_backups) == 1
 
+        # make directory if does not exist
+        try:
+            os.makedirs(case_directory)
+        except:
+            pass
+
         caseinfo = self.RD.createcase.set_case_info(case_name, case_num, case_investigator, case_comments, case_directory)
         self.RD.createcase.processCaseInfo(caseinfo)
 
