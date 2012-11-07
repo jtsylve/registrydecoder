@@ -9,8 +9,3 @@
 - consistent timestamp across search/report/plugins - search strftime
 
 - add evidence aliases to command line and test from cmdline & GUI
-
----- needs testing ------
-
-1) add regdecoerlive database from cmdline & from gui
-

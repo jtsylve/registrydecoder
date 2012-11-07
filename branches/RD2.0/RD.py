@@ -93,9 +93,8 @@ def excepthook(excType, excValue, tracebackobj):
 sys.excepthook = excepthook
 
 # interfaces this file supports
-import interfaces
-import interfaces.cmdline.cmdlinemain as cmdlinemain
-import interfaces.GUI.guimain as GUI
+import interfaces.cmdline.cmdlinemain
+import interfaces.GUI.guimain
 
 def gui_main():
     global interface
