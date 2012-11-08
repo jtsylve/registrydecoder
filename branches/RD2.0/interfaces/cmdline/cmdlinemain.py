@@ -147,12 +147,12 @@ class cmdline_main:
         self._do_run_plugins(plugin_names)
 
     def _parse_search_options(self, parser):
-        parser.add_option("-s",  "--searchterm", dest="searchterm",       help="Single search term to be searched", default="")
-        parser.add_option("-f" , "--searchfile", dest="searchfile",       help="File of search terms",              default="")
+        parser.add_option("-s",  "--searchterm",    dest="searchterm",    help="Single search term to be searched", default="")
+        parser.add_option("-f" , "--searchfile",    dest="searchfile",    help="File of search terms",              default="")
         parser.add_option("-p",  "--searchpartial", dest="searchpartial", help="Search partial", action="store_true") 
-        parser.add_option("-k",  "--searchkeys",   dest="searchkeys",     help="Search keys",    default=1)
-        parser.add_option("-n",  "--searchnames",  dest="searchnames",    help="Search names ",  default=1)
-        parser.add_option("-v",  "--searchvalues", dest="searchvalues",   help="Search values",  default=1)
+        parser.add_option("-k",  "--searchkeys",    dest="searchkeys",    help="Search keys",    default=1)
+        parser.add_option("-n",  "--searchnames",   dest="searchnames",   help="Search names ",  default=1)
+        parser.add_option("-d",  "--searchdata",    dest="searchdata",    help="Search data",  default=1)
  
     def _parse_boolean_arg(self, arg):
         try:
@@ -162,12 +162,12 @@ class cmdline_main:
 
         return ret
 
-    def _do_search(self, searchterm, searchfile, searchpartial, searchkeys, searchnames, searchvalues, start_date, end_date):
-        searchkeys    = self._parse_boolean_arg(searchkeys)
-        searchnames   = self._parse_boolean_arg(searchnames)
-        searchvalues  = self._parse_boolean_arg(searchvalues)
+    def _do_search(self, searchterm, searchfile, searchpartial, searchkeys, searchnames, searchdata, start_date, end_date):
+        searchkeys  = self._parse_boolean_arg(searchkeys)
+        searchnames = self._parse_boolean_arg(searchnames)
+        searchdata  = self._parse_boolean_arg(searchdata)
 
-        sp = self.RD.search.set_search_params(searchterm, searchfile, searchpartial, searchkeys, searchnames, searchvalues, start_date, end_date)
+        sp = self.RD.search.set_search_params(searchterm, searchfile, searchpartial, searchkeys, searchnames, searchdata, start_date, end_date)
 
         if not sp:
             return
@@ -179,7 +179,7 @@ class cmdline_main:
         self.RD.search.write_search_results(search_results, report_format=self.report_format, report_filename=self.report_filename)
 
     def _perform_search_cmdline(self, parser, args):
-        self._do_search(args.searchterm, args.searchfile, args.searchpartial, args.searchkeys, args.searchnames, args.searchvalues, args.start_date, args.end_date)
+        self._do_search(args.searchterm, args.searchfile, args.searchpartial, args.searchkeys, args.searchnames, args.searchdata, args.start_date, args.end_date)
          
     def _parse_search_file_options(self, parser):
         parser.add_option("-F", "--searchfile", dest="searchfile", help="File with search parameters", default="")
@@ -385,8 +385,8 @@ class cmdline_main:
         parser.add_option("-P", "--plugin_dirs",   dest="plugin_dirs",   help="Extra directory to load plugins from",            default="")
         parser.add_option("-b", "--before",        dest="end_date",      help="Filter results to entries before this date", default="")
         parser.add_option("-a", "--after",         dest="start_date",    help="Filter results to entries after this date",  default="")
-        parser.add_option("-d", "--diff",          dest="perform_diff",  help="Perform diff analyais",  action="store_true")
-        parser.add_option("-D", "--disable_input", dest="disable_input", help="Disable input (batch mode)", action="store_true")
+        parser.add_option("-D", "--diff",          dest="perform_diff",  help="Perform diff analyais",  action="store_true")
+        parser.add_option("-I", "--disable_input", dest="disable_input", help="Disable input (batch mode)", action="store_true")
 
         # this lets the usage message differeniate between global options and per-analysis type ones
         # needs to always be the last option added here
