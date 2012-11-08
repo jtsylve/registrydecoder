@@ -393,7 +393,7 @@ class cmdline_main:
     
     def _open_case(self, casefolder):
         if casefolder == "":
-            return False
+            return 0
 
         try:
             files = os.listdir(casefolder)
@@ -409,13 +409,16 @@ class cmdline_main:
 
         o = self.RD.opencase
 
-        o.opencase(casefolder)
+        ret = o.opencase(casefolder)
+
+        if ret == False:
+            return 1
 
         self.case_obj = o
 
         self.RD = registrydecoder.registrydecoder(self)
 
-        return True
+        return 2
 
     def process_args(self, args):
         action = args[1]
@@ -434,9 +437,12 @@ class cmdline_main:
 
             # setup global args for analysis
             if not action in ["create_case", "list_plugins"]:
-                if self._open_case(options.casefolder) == False:
+                ret = self._open_case(options.casefolder)
+                if ret == 0:
                     write_msg("Mandatory casefile (-c/--casefolder) option missing.")
                     self._usage(parser, action)
+                elif ret == 1:
+                    return
 
                 self.fileids = self._parse_fileids_opt(options.fileids)
                 if self.fileids == None and action != "list_fileids":

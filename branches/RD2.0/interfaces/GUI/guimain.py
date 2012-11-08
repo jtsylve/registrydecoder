@@ -256,7 +256,11 @@ class registryDecoderGUI(QMainWindow, Ui_registrydecoder, reportactions.reportac
 
     def _set_case_info(self, directory):
         o = self.RD.opencase
-        o.opencase(directory)
+
+        ret = o.opencase(directory)
+        if ret == False:
+            return False
+
         self.case_obj = o
     
         self.RD = registrydecoder.registrydecoder(self)
@@ -264,7 +268,9 @@ class registryDecoderGUI(QMainWindow, Ui_registrydecoder, reportactions.reportac
         self.directory = directory
         
         self.stackedWidget.setCurrentIndex(gcommon.CASE_WINDOW)
-     
+    
+        return True
+ 
     def resetForm(self):
         # called when the back button is hit on load case or new case, resets to the load page
         self.stackedWidget.setCurrentIndex(0)

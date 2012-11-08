@@ -59,12 +59,16 @@ class opencase:
         return db_obj(conn, cursor)
 
     def opencase(self, case_directory):
-
         self.directory = case_directory
 
         filename = os.path.join(self.directory, "caseobj.pickle")
         fd = open(filename,"rb")
-        obj = cPickle.load(fd)
+
+        try:
+            obj = cPickle.load(fd)
+        except:
+            self.UI.msgBox("Registry Decoder 2.x does not support cases created with Registry Decoder 1.x, please re-process the case")            
+            return False
 
         obj.stringtable.db_connect(self.directory)
         obj.vtable.db_connect(self.directory)
@@ -87,4 +91,5 @@ class opencase:
         self.vtable         = obj.vtable
         self.case_directory = self.directory
         
+        return True
 
