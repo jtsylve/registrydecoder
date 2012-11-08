@@ -38,12 +38,13 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from xlwt import Workbook
 
 class _header_info:
-    def __init__(self, action, context, term, extras, fileid):        
+    def __init__(self, action, context, term, extras, fileid, evi_file):        
         self.action    = action
         self.context   = context
         self.term      = term
         self.extras    = extras
         self.fileid    = fileid
+        self.evi_file  = evi_file
 
 class _report_params:
     def __init__(self, fileid, action, context, term):
@@ -149,8 +150,12 @@ class report_manager:
         (header_list, rdata, rows_max, cols_max) = self._get_report_data(tm)
         
         extras      = self._get_extra_header_info(tm)
-        cinfo_list = self._get_case_info_list(rps.fileid)
-        hinfo      = _header_info(rps.action, rps.context, rps.term, extras, rps.fileid)
+        cinfo_list = self._get_case_info_list()
+
+        fhash = handle_file_info.get_hives_info(self.UI)[0]
+        (evi_file, _a, _b) = common.get_file_info(fhash, rps.fileid)
+
+        hinfo      = _header_info(rps.action, rps.context, rps.term, extras, rps.fileid, evi_file)
 
         info_class = _info_class(tm, hinfo, cinfo_list, header_list, rdata, rows_max, cols_max, match_idxs, color_idxs)
 
@@ -216,7 +221,7 @@ class report_manager:
         else:
             self._write_report(tab, info_class, report_obj, report_filename)
         
-    def _get_case_info_list(self, fileid):
+    def _get_case_info_list(self):
         db = self.UI.case_obj.caseinfodb
 
         db.cursor.execute("select casename,casenumber,investigatorname,comments from caseinformation")

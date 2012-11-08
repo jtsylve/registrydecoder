@@ -25,7 +25,7 @@
 
 import sys
 
-name       = "Command Line Display"
+name = "Command Line Display"
 
 def get_instance():
     return cmdLineDisplay()
@@ -38,8 +38,8 @@ class cmdLineDisplay:
     def write(self, msg):
         sys.stdout.write(msg.encode('utf-8'))
 
-    def start_report(self):
-        self.write("-" * 80)
+    def start_report(self, info_class):
+        self.write("-" * 25 + " " + "%d" % info_class.header_info.fileid + " : " + info_class.header_info.evi_file + " " + "-" * 25)
 
     def write_cell(self, data):
         cell_len = 40
@@ -59,22 +59,17 @@ class cmdLineDisplay:
 
     # TODO_NIST - move to common w gui
     def calc_colors(self, data_list, color_idxs):
-        #print "color: %s" % str(color_idxs)
-
         if color_idxs == []:
             colors = [""] * len(data_list) 
         else:
             colors = "-" * color_idxs[0] + "same" * color_idxs[1] + "+" * color_idxs[2]
      
-        #print colors
-
         return colors
 
     def report_data(self, _tableWidget, header_list, data_list, info_class):
-
         (match_idxs, rowmax, colmax, color_idxs) = (info_class.match_idxs, info_class.rows_max, info_class.cols_max, info_class.color_idxs)
 
-        self.start_report()
+        self.start_report(info_class)
         self.end_row()
 
         # write out the headers
