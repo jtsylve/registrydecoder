@@ -39,7 +39,12 @@ class cmdLineDisplay:
         sys.stdout.write(msg.encode('utf-8'))
 
     def start_report(self, info_class):
-        self.write("-" * 25 + " " + "%d" % info_class.header_info.fileid + " : " + info_class.header_info.evi_file + " " + "-" * 25)
+        if info_class.header_info.fileid >= 0:
+            msg = " " + "%d" % info_class.header_info.fileid + " : " + info_class.header_info.evi_file + " "
+        else:
+            msg = ""
+
+        self.write("-" * 25  + msg +  "-" * 25)
 
     def write_cell(self, data):
         cell_len = 40
