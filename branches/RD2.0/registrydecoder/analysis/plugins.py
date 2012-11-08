@@ -258,7 +258,7 @@ class pluginAnalysis(analysisBase.analysisBase):
     # returns results{fileid} = [_plugin_results(), _plugin_results, ...]
     def run_plugins(self, plugin_names, perform_diff):
         self.fileinfo_hash = handle_file_info.get_hives_info(self.UI)[0]
-        self.tm.load_templates(self.UI.case_obj, self.UI.plugin_dirs)
+        self.load_plugins()
 
         # get the real plugin objects
         plugins = self._get_plugins(plugin_names)

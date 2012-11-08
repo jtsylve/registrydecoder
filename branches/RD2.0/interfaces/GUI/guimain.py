@@ -107,9 +107,18 @@ class file_menu:
         self.connectSlots()
 
     def connectSlots(self):
-        self.gui.connect( self.gui.actionBackup_Case, SIGNAL("triggered(bool)"), self.backupCaseClicked )
-        self.gui.connect( self.gui.actionExit, SIGNAL("triggered(bool)"), self.gui.app, SLOT('quit()') )
-        self.gui.connect( self.gui.actionClose_Case_2, SIGNAL("triggered(bool)"), self.closeCaseClicked )
+        self.gui.connect( self.gui.actionPlugins_Directory, SIGNAL("triggered(bool)"), self.pluginsDirClicked )
+        self.gui.connect( self.gui.actionBackup_Case,       SIGNAL("triggered(bool)"), self.backupCaseClicked )
+        self.gui.connect( self.gui.actionExit,              SIGNAL("triggered(bool)"), self.gui.app, SLOT('quit()') )
+        self.gui.connect( self.gui.actionClose_Case_2,      SIGNAL("triggered(bool)"), self.closeCaseClicked )
+
+    def pluginsDirClicked(self):
+        (self.gui.plugin_dirs, ok) = QInputDialog.getText(self.gui, "Plugin Directories", "Enter a ; seperated list of plugin directories.")
+
+        if len(self.gui.plugin_dirs) > 0 and ok:
+            self.gui.plugin_dirs = str(self.gui.plugin_dirs)
+            self.gui.plugin_dirs = self.gui.plugin_dirs.split(";")
+            self.gui.plugintab.redraw_plugins()
 
     def closeCaseClicked(self):
         attrs = ["case_obj", "directory", "alias_hash", "created_dir", "acquire_current", "acquire_backups", "add_evidence", "plugin_dirs"]
@@ -121,14 +130,12 @@ class file_menu:
         self.gui.stackedWidget.setCurrentIndex(gcommon.START_PAGE)
 
     def backupCaseClicked(self):
-
         if hasattr(self.gui, "directory"):
             self.do_backup(self.gui.directory)            
         else:
             self.gui.msgBox("Backup Case called from invalid context")  
 
     def do_backup(self, directory):
-
         zipname = QFileDialog.getSaveFileName(parent=self.gui, caption="Choose A Save File (zip)")
 
         zipname = str(zipname)

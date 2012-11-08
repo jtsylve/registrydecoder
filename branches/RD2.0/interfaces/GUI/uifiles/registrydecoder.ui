@@ -637,7 +637,7 @@
            </sizepolicy>
           </property>
           <property name="currentIndex">
-           <number>4</number>
+           <number>0</number>
           </property>
           <property name="tabsClosable">
            <bool>true</bool>
@@ -1457,8 +1457,15 @@
     <addaction name="actionExport_Paths"/>
     <addaction name="actionExport_Plugins_and_Searches"/>
    </widget>
+   <widget class="QMenu" name="menuAnalysis">
+    <property name="title">
+     <string>Analysis</string>
+    </property>
+    <addaction name="actionPlugins_Directory"/>
+   </widget>
    <addaction name="FileMenu"/>
    <addaction name="menuActions"/>
+   <addaction name="menuAnalysis"/>
   </widget>
   <action name="actionOpen_Case">
    <property name="text">
@@ -1513,6 +1520,11 @@
   <action name="actionExport_Paths">
    <property name="text">
     <string>Export Paths</string>
+   </property>
+  </action>
+  <action name="actionPlugins_Directory">
+   <property name="text">
+    <string>Plugins Directory</string>
    </property>
   </action>
  </widget>

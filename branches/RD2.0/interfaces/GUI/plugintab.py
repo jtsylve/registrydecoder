@@ -126,6 +126,13 @@ class plugintab:
     
         self._fill_plugin_listwidget()
 
+    # called when new plugins added dynamically
+    def redraw_plugins(self):
+        self.current_hive = "ALL"
+        self.gui.hiveComboBox.setCurrentIndex(0)
+
+        self._fill_plugin_listwidget()
+
     def _fill_plugin_listwidget(self):
         widgetname = "pluginListWidget"
         self.gui.pluginListWidget.clear()
