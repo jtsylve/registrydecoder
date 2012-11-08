@@ -282,10 +282,9 @@ class cmdline_main:
 
         self.RD.createcase.process_case_files()        
 
-    # NIST_TODO              
     def _usage(self, parser, action=""):
         if action == "":
-            write_msg("Usage: python RD.py <action> <action args>. For help in a specific action type: python %s [%s]" % (sys.argv[0], ''.join([x + "," for x in self._actions.keys()])[:-1])) 
+            write_msg("Usage: python RD.py <action> <action args>. For help in a specific action type: python %s [%s]" % (sys.argv[0], ''.join([x + ", " for x in self._actions.keys()])[:-2])) 
         
         elif action in self._actions:
             write_msg("GLOBAL OPTIONS")
