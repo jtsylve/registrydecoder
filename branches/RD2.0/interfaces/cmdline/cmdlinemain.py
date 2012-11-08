@@ -232,18 +232,6 @@ class cmdline_main:
     def _parse_create_case_options(self, parser):
         parser.add_option("-F", "--casefile", dest="casefile", help="File with information on the created case", default="")
 
-    '''
-    Case Name
-    Case Number 
-    Investigator Name
-    Comments
-    Case Directory
-    Active Files
-    Backup Files
-    Evidence Path 1
-    ..
-    Evidence Path N
-    '''
     def _create_case(self, parser, args):
         if args.casefile == "":
             write_msg("No casefile specified")
@@ -254,36 +242,60 @@ class cmdline_main:
         if fd == None:
             write_msg("Unable to open new case configuration file.", die=True)
 
-        regex = "[\r\t\n]"
+        vals = {"case_name"        : "",
+               "case_number"       : "",
+               "case_investigator" : "",
+               "case_comments"     : "",
+               "case_directory"    : "",
+               "acquire_current"   : 0,
+               "acquire_backup"    : 0,
+               "evidence_file"     : []}
+     
+        ents = fd.readlines()
         
-        ents = [re.sub(regex, '', line) for line in fd.readlines()]
+        for ent in ents:
+            ent = ent.strip().split(":")
 
-        if len(ents) < 6:
-            write_msg("The given case configuration file is invalid: Less than the minimum of 6 lines long", die=True)
+            if len(ent) != 2:
+                write_msg("Invalid configuration line %s" % ':'.join(ent), die=True)
+            
+            (key, val) = ent
 
-        # parse case info out of file and insert into database
-        (case_name, case_num, case_investigator, case_comments, case_directory, acq_current, acq_backups) = ents[:7]
-        
-        self.acquire_current = int(acq_current) == 1
-        self.acquire_backups = int(acq_backups) == 1
+            if key in vals:
+                if key == "evidence_file":
+                    vals[key].append(val)      
+                else:
+                    # boolean_arg just returns the value if not an int
+                    vals[key] = self._parse_boolean_arg(val)
+            else:
+                write_msg("Unknown key in config file: %s. Cannont proceed." % key, die=True)
+         
+        if vals["case_directory"] == "":
+            write_msg("The given case configuration file is invalid: No case directory specified.", die=True)
+
+        if vals["evidence_file"] == []:
+            write_msg("The given case configuration file is invalid: No evidence files specified.", die=True)            
+
+        self.acquire_current = int(vals["acquire_current"]) == 1
+        self.acquire_backups = int(vals["acquire_current"]) == 1
 
         # make directory if does not exist
         try:
-            os.makedirs(case_directory)
+            os.makedirs(vals["case_directory"])
         except:
             pass
 
-        caseinfo = self.RD.createcase.set_case_info(case_name, case_num, case_investigator, case_comments, case_directory)
+        caseinfo = self.RD.createcase.set_case_info(vals["case_name"], vals["case_number"], vals["case_investigator"], vals["case_comments"], vals["case_directory"])
         self.RD.createcase.processCaseInfo(caseinfo)
 
-        for line in ents[7:]:
-            file_info = line.split("|")
+        for ent in vals["evidence_file"]:
+            file_info = ent.split("|")
             evidence_file = file_info[0]
             if len(file_info) > 1:
                 alias = file_info[1]
 
             if not os.path.exists(evidence_file):
-                write_msg("File: %s does not exist. Exiting." % evidence_file, die=True)
+                write_msg("Evidence file: %s does not exist. Exiting." % evidence_file, die=True)
             
             self.evidence_list.append(evidence_file)
          
@@ -291,7 +303,6 @@ class cmdline_main:
             # set alias
 
         self.RD.createcase.setupCaseDir()
-
         self.RD.createcase.process_case_files()        
 
     def _usage(self, parser, action=""):
