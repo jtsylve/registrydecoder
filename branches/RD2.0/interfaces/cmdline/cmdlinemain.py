@@ -53,7 +53,6 @@ class cmdline_main:
               "search"       : (self._parse_search_options,      self._perform_search_cmdline),
               "search_file"  : (self._parse_search_file_options, self._search_file),
               "plugins"      : (self._parse_plugin_options,      self._run_plugins_cmdline),
-              "plugins_file" : (self._parse_plugin_file_options, self._plugins_file),
               "timeline"     : (self._parse_time_options,        self._run_timeline),
               "pathanalysis" : (self._parse_path_options,        self._run_pathanalysis),
               "create_case"  : (self._parse_create_case_options, self._create_case),
@@ -111,17 +110,14 @@ class cmdline_main:
 
         self.RD.timeline.write_timeline(tp)    
 
-    def _parse_plugin_file_options(self, parser):      
-        parser.add_option("-F", "--plugins_file", dest="plugins_file", help="File of plugin options to analyze with ", default="")
- 
     def _do_run_plugins(self, plugin_names):
         plugin_results = self.RD.plugins.run_plugins(plugin_names, self.perform_diff)
 
         self.RD.plugins.write_plugin_results(plugin_results, self.report_format, self.report_filename)
 
     # The file is simply a newline seperated list of plugins to run
-    def _plugins_file(self, parser, args):
-        fd = self._open_file_r(args.plugins_file)
+    def _plugins_file(self, plugins_config):
+        fd = self._open_file_r(plugins_config)
 
         if fd == None:
             write_msg("Invalid plugins_file given.", die=True)
@@ -132,18 +128,22 @@ class cmdline_main:
             name = name.strip()
             plugin_names.append(name)
 
-        self._do_run_plugins(plugin_names) 
+        return plugin_names
  
     def _parse_plugin_options(self, parser):
-        parser.add_option("-p", "--plugins", dest="plugins", help="Command seperate list of plugins to run", default="")
+        parser.add_option("-p", "--plugins",      dest="plugins",      help="Command seperate list of plugins to run", default="")
+        parser.add_option("-F", "--plugins_config", dest="plugins_config", help="File of plugin options to analyze with ", default="")
 
     def _run_plugins_cmdline(self, parser, args):
-        if args.plugins == "":
-            write_msg("No plugins (-p/--plugins) given to be run.")
+        if args.plugins == "" and args.plugins_config == "":
+            write_msg("No plugins (-p/--plugins) and no plugnis config (-F/--plugins_config) given.")
             self._usage("plugins")
-        
-        plugin_names = [name.strip() for name in args.plugins.split(",")]   
-
+       
+        if len(args.plugins) > 0: 
+            plugin_names = [name.strip() for name in args.plugins.split(",")]   
+        else:
+            plugin_names = self._plugins_file(args.plugins_config)
+            
         self._do_run_plugins(plugin_names)
 
     def _parse_search_options(self, parser):
