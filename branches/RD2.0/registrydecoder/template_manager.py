@@ -168,7 +168,8 @@ class TemplateManager:
                             setattr(mod, "hives", [mod.hive])
                             delattr(mod, "hive")
 
-                        self.attach_methods(mod, case_obj)
+                        if case_obj:
+                            self.attach_methods(mod, case_obj)
                         self.templates.append(mod)
                             
     

@@ -55,6 +55,7 @@ class cmdline_main:
               "timeline"     : (self._parse_time_options,        self._run_timeline),
               "pathanalysis" : (self._parse_path_options,        self._run_pathanalysis),
               "create_case"  : (self._parse_create_case_options, self._create_case),
+              "list_plugins" : (self._parse_list_plugins_options, self._list_plugins),
               }
         
         self.case_obj = None
@@ -76,6 +77,17 @@ class cmdline_main:
         for fileid in fileinfo_hash:
             (filepath, evi_file, group_name) = self.RD.get_file_info(fileinfo_hash, fileid)
             print "%d -> %s" % (fileid, filepath)
+
+    def _parse_list_plugins_options(self, parser):
+        parser.add_option("-t", "--hivetype", dest="hivetype", help="list only plugins against hive type", default="")
+
+    def _list_plugins(self, parser, args):
+        self.RD.plugins.load_plugins() 
+        templates = self.RD.plugins.get_loaded_plugins()
+
+        for t in templates:
+            if args.hivetype == "" or args.hivetype in t.hives:
+                print t.pluginname
 
     def _parse_path_options(self, parser):
         parser.add_option("-k", "--path_key",       dest="path_key",       help="key path to analyze",     default="") 
@@ -417,9 +429,11 @@ class cmdline_main:
             (options, optargs) = parser.parse_args(args[2:])
 
             self.enable_input = not options.disable_input
+                
+            self.plugin_dirs = options.plugin_dirs
 
             # setup global args for analysis
-            if not action in ["create_case"]:
+            if not action in ["create_case", "list_plugins"]:
                 if self._open_case(options.casefolder) == False:
                     write_msg("Mandatory casefile (-c/--casefolder) option missing.")
                     self._usage(parser, action)
@@ -428,8 +442,6 @@ class cmdline_main:
                 if self.fileids == None and action != "list_fileids":
                     write_msg("No file ID(s) specified. Cannot proceed.")
                     self._usage(parser, action)
-
-                self.plugin_dirs = options.plugin_dirs
 
                 self.report_format = self._parse_report_format(options.report_format)
                 if self.report_format == "":
