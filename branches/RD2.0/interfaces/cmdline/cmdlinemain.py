@@ -51,7 +51,6 @@ class cmdline_main:
         self._actions = {
               "list_fileids" : (self._parse_fileids_options,     self._perform_parse_fileids),
               "search"       : (self._parse_search_options,      self._perform_search_cmdline),
-              "search_file"  : (self._parse_search_file_options, self._search_file),
               "plugins"      : (self._parse_plugin_options,      self._run_plugins_cmdline),
               "timeline"     : (self._parse_time_options,        self._run_timeline),
               "pathanalysis" : (self._parse_path_options,        self._run_pathanalysis),
@@ -147,13 +146,14 @@ class cmdline_main:
         self._do_run_plugins(plugin_names)
 
     def _parse_search_options(self, parser):
-        parser.add_option("-s",  "--searchterm",    dest="searchterm",    help="Single search term to be searched", default="")
-        parser.add_option("-f" , "--searchfile",    dest="searchfile",    help="File of search terms",              default="")
-        parser.add_option("-p",  "--searchpartial", dest="searchpartial", help="Search partial", action="store_true") 
-        parser.add_option("-k",  "--searchkeys",    dest="searchkeys",    help="Search keys",    default=1)
-        parser.add_option("-n",  "--searchnames",   dest="searchnames",   help="Search names ",  default=1)
-        parser.add_option("-d",  "--searchdata",    dest="searchdata",    help="Search data",  default=1)
- 
+        parser.add_option("-s", "--searchterm",    dest="searchterm",    help="Single search term to be searched", default="")
+        parser.add_option("-f", "--searchfile",    dest="searchfile",    help="File of search terms",              default="")
+        parser.add_option("-p", "--searchpartial", dest="searchpartial", help="Search partial",   action="store_true") 
+        parser.add_option("-k", "--searchkeys",    dest="searchkeys",    help="Search keys",      default=1)
+        parser.add_option("-n", "--searchnames",   dest="searchnames",   help="Search names ",    default=1)
+        parser.add_option("-d", "--searchdata",    dest="searchdata",    help="Search data",      default=1)
+        parser.add_option("-F", "--searchconfig",  dest="searchconfig",  help="File with search parameters", default="")
+
     def _parse_boolean_arg(self, arg):
         try:
             ret = int(arg)
@@ -178,28 +178,8 @@ class cmdline_main:
         # this handles writing to terminal or to a report file, based on self.report_format
         self.RD.search.write_search_results(search_results, report_format=self.report_format, report_filename=self.report_filename)
 
-    def _perform_search_cmdline(self, parser, args):
-        self._do_search(args.searchterm, args.searchfile, args.searchpartial, args.searchkeys, args.searchnames, args.searchdata, args.start_date, args.end_date)
-         
-    def _parse_search_file_options(self, parser):
-        parser.add_option("-F", "--searchfile", dest="searchfile", help="File with search parameters", default="")
-
-    '''
-    search term
-    search file
-    partial (0/1)
-    keys
-    names
-    values
-    start_date
-    end_date
-    '''
-    def _search_file(self, parser, args):
-        if args.searchfile == "":
-            write_msg("No search file (-F/--searchfile) given.")
-            self._usage("searchfile")
-        
-        fd = self._open_file_r(args.searchfile)
+    def _do_search_config(self, search_file):
+        fd = self._open_file_r(search_file)
 
         if not fd:
             write_msg("Unable to open search file.", die=True)
@@ -230,6 +210,12 @@ class cmdline_main:
                 write_msg("Unknown key in search file: %s. Cannont proceed." % key, die=True)
             
         self._do_search(vals["search_term"], vals["search_file"], vals["partial_search"], vals["search_keys"], vals["search_names"], vals["search_values"], vals["start_date"], vals["end_date"])
+    
+    def _perform_search_cmdline(self, parser, args):
+        if len(args.searchconfig) > 0:
+            self._do_search_config(args.searchconfig)       
+        else:
+            self._do_search(args.searchterm, args.searchfile, args.searchpartial, args.searchkeys, args.searchnames, args.searchdata, args.start_date, args.end_date)
     
     def _parse_create_case_options(self, parser):
         parser.add_option("-F", "--casefile", dest="casefile", help="File with information on the created case", default="")
