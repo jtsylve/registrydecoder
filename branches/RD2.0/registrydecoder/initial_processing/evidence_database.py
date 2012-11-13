@@ -133,7 +133,6 @@ class evidence_database:
        
         # rdb files...
         if ehashfname == "":
-
             evidence_type = self.ehash[filename]
             md5, mtime, unused = self.fill_db_info("", filename, hashit)
             # get the alias from the gui
@@ -292,7 +291,6 @@ class evidence_database:
 
     # this takes info from an acquire_files database and inserts them into a case tree/processing queue
     def handle_image_files(self, casedir, basedir, dbname="acquire_files.db", ehashfname=""):
-
         # see if any images were added to the evidence list
         try:
             fd = open(os.path.join(basedir, dbname))
@@ -306,7 +304,6 @@ class evidence_database:
         
         # each image file
         for (self.img_filename, orig_id) in imgs:
-
             evi_id = self.insert_evidence_source(self.img_filename, 0, ehashfname)
        
             cursor.execute("select number, offset, id from partitions where evidence_file_id=?", [orig_id])
@@ -314,7 +311,6 @@ class evidence_database:
 
             # each partition in the image
             for (number, offset, part_id) in parts:
-            
                 new_part_id = self.insert_partition(number, offset, evi_id)
 
                 cursor.execute("select group_name,id from file_groups where partition_id=?", [part_id])
@@ -330,7 +326,6 @@ class evidence_database:
             return
 
         for dbpath in fd.readlines():
-
             if dbpath[-1] == '\n':
                 dbpath = dbpath[:-1]
 

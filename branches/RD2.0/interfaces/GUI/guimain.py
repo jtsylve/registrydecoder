@@ -80,7 +80,7 @@ class load_case:
         self.gui.connect( self.gui.loadCaseButton,   SIGNAL("clicked()"), self.loadCaseButtonClicked )
 
     def browseCaseButtonClicked(self):
-        directory = QFileDialog.getExistingDirectory(parent=self.gui, directory="/root/tmpcasedir", caption="Choose Case Directory")    
+        directory = QFileDialog.getExistingDirectory(parent=self.gui, directory="/root/livecasedir", caption="Choose Case Directory")    
         self.gui.caseFolderInput.setText(directory)
     
     def loadCaseButtonClicked(self):

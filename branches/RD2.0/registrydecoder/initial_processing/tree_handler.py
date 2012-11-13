@@ -59,28 +59,14 @@ class tree_handling:
         ktree = case_obj.tree
         
         i = 0
-
         for element in keylist:
-
             isroot = not i
 
             ktree.add_path(fileid, element, isroot)
             
             i = i + 1
 
-            if i % 5000 == 0:
-                if not hasattr(gui,"progressLabel"):
-                    return
-
-                gui.progressLabel.setText("Processed %d registry keys" % i)
- 
-                gui.update()
-                gui.app.processEvents()
-                gui.update()
-                gui.app.processEvents()
-       
             if i % 10000 == 0:
- 
                 case_obj.stringtable.commit_db()
                 case_obj.vtable.conn.commit()
             

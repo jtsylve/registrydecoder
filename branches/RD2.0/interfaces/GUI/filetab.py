@@ -129,7 +129,7 @@ class hiveTreeModel(QAbstractItemModel):
         if ort == Qt.Horizontal and role == Qt.DisplayRole and section == 0:
             ret = QVariant(self.filepath)
         else:
-            ret = QVariant()
+            ret = QVariant(self.filepath)
 
         return ret
             

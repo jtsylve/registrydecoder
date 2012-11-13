@@ -142,7 +142,6 @@ class ptree:
     # path is the full path of whatever is being put into the tree
     # checks if each key is in the tree, if not adds it
     def create_strings(self, fileid, element, isroot):
-
         parent = None
 
         timestamp = element.timestamp
@@ -195,7 +194,6 @@ class ptree:
             node.timestamps[fileid] = timestamp
         
     def add_path(self, fileid, registry_path, isroot):
-        
         self.create_strings(fileid, registry_path, isroot)
 
 #
