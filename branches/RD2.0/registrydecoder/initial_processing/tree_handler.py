@@ -33,20 +33,23 @@ class tree_handling:
         self.reg_parser = regparse.regparser()
 
     def add_file_to_tree(self, gui, existingfilepath, fileid, case_obj, filepath):
-
-        # get the keys from the registry
-        keylist = self.reg_parser.parse_file(existingfilepath)
-
         # had to try/expect whole function b/c
         # exception occurs in 'for' due to being generator
         try:
+            # get the keys from the registry
+            keylist = self.reg_parser.parse_file(existingfilepath)
             self.add_elements(keylist, gui, fileid, case_obj)
-     
+            error = 0
+        except AttributeError, e:
+            error = 1
         # regfi throws generic Exception
         except Exception, e:
-            print "--error: %s" % str(e)
-            traceback.print_exc(file=sys.stdout)
-            cont = gui.yesNoDialog("Unable to process %s" % filepath, "Would you like to skip this file?")
+            error = 1
+
+        if error: 
+            #print "--error: %s" % str(e)
+            #traceback.print_exc(file=sys.stdout)
+            cont = gui.yesNoDialog("tree_handling: Unable to process %s" % filepath, "Would you like to skip this file?")
 
             if cont:
                 return False

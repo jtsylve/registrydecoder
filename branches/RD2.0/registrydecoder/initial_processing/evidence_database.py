@@ -204,7 +204,7 @@ class evidence_database:
             first = first + " from %s" % extra
 
         self.update_output("Adding " + first)
-        ret = self.tree_handler.add_file_to_tree(self.gui, pickle_file, fileid, self.case_obj, first)
+        ret = self.tree_handler.add_file_to_tree(self.UI, pickle_file, fileid, self.case_obj, first)
 
         # if the file added correctly then display, if not delete its records from the database
         if ret == True:
