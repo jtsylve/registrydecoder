@@ -32,7 +32,9 @@ class registry_sig:
     def __init__(self):
         pass
 
-    def determine_type(self, checkbuffer):
+    def determine_type(self, filename):
+        fd = open(filename,"rb")
+        checkbuffer = fd.read(0x80)
 
         lookfor = ["s\x00o\x00f\x00t\x00w\x00a\x00r\x00e\x00", "s\x00y\x00s\x00t\x00e\x00m\x00", "s\x00e\x00c\x00u\x00r\x00i\x00t\x00y\x00"]
         lookfor = lookfor + ["n\x00t\x00u\x00s\x00e\x00r\x00.\x00d\x00a\x00t",  "s\x00a\x00m\x00", "u\x00s\x00r\x00c\x00l\x00a\x00s\x00s\x00.\x00d\x00a\x00t\x00"]
@@ -43,9 +45,7 @@ class registry_sig:
         idx = 1
  
         for check in lookfor:
-
             if check in checkbuffer or check.upper() in checkbuffer:
-                    
                 # UsrClass to usrclass
                 if idx == 7:
                     idx = 6
@@ -57,12 +57,20 @@ class registry_sig:
         # default is really an ntuser file
         if default in checkbuffer or default.upper() in checkbuffer:
             return [SINGLEFILE, 6]
-            
+
+        # add support for HW hives
+        volbuffer = fd.read(0x1200)
+        if volbuffer.find("HARDWARE") != -1 and volbuffer.find("DEVICEMAP") != -1:        
+            return [SINGLEFILE, HARDWARE]            
+
+        if volbuffer.find("REGISTRY") != -1 and volbuffer.find("MACHINE") != -1:
+            return [SINGLEFILE, SECCLONE]
+
         return None
 
     def determine_type_file(self, filename):
-
-        return self.determine_type(open(filename,"rb").read(0x80))
+        print "got filename: %s" % filename
+        return self.determine_type(filename)
 
 def main():
 

@@ -126,12 +126,8 @@ class acquire_files:
         return etype
         
     def determine_type_sig(self, evidence_file):
-        fd = open(evidence_file,"rb")
-
-        checkbuffer = fd.read(0x80)
-
         # check for a registry file
-        ret = self.reg_sig.determine_type(checkbuffer)
+        ret = self.reg_sig.determine_type(evidence_file)
 
         if not ret:
             ret = [UNKNOWN]
