@@ -59,17 +59,19 @@ def get_file_info(fhash, fileid, extra=0):
     type_name  = finfo.type_name
     rpname     = finfo.rp_name    
 
-    if group_name != "SINGLE":
+    if group_name == "SINGLE":
+        group_info = group_name
+    
+    elif group_name == "MEMORY":
+        filepath = "%s -> %s" % (evi_file, regfile)
 
+    else:
         group_info = "Partition %s | %s | %s" % (part_num, group_name, type_name) 
        
         if rpname:
             group_info = group_info + " | " + rpname
 
         filepath = "%s in %s from %s" % (filepath, group_info, evi_file)
-
-    else:
-        group_info = group_name
 
     # if an alias was given
     if len(alias) and evi_file != alias:

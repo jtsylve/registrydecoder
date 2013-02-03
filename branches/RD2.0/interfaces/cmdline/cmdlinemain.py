@@ -247,6 +247,7 @@ class cmdline_main:
                "case_investigator" : "",
                "case_comments"     : "",
                "case_directory"    : "",
+               "volatility_path"   : "", 
                "acquire_current"   : 0,
                "acquire_backup"    : 0,
                "evidence_file"     : []}
@@ -288,13 +289,15 @@ class cmdline_main:
         caseinfo = self.RD.createcase.set_case_info(vals["case_name"], vals["case_number"], vals["case_investigator"], vals["case_comments"], vals["case_directory"])
         self.RD.createcase.processCaseInfo(caseinfo)
 
+        self.volatility_path = vals["volatility_path"]
+
         for ent in vals["evidence_file"]:
             file_info = ent.split("|")
             evidence_file = file_info[0]
             if len(file_info) > 1:
                 alias = file_info[1]
 
-            if not os.path.exists(evidence_file):
+            if not os.path.exists(evidence_file) and evidence_file.find(",") == -1:
                 write_msg("Evidence file: %s does not exist. Exiting." % evidence_file, die=True)
             
             self.evidence_list.append(evidence_file)

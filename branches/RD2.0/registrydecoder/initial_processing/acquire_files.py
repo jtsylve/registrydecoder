@@ -29,9 +29,14 @@ import registry_sig
 import acquirefiles.acquire_files as aqfile
 import shutil, sys, re, os
 
+import registrydecoder.common as common
+
+from subprocess import call
+
 import pytsk3
 import ewf
 import traceback
+import shutil
 
 class acquire_files:
 
@@ -67,28 +72,22 @@ class acquire_files:
         self.singlefilecounter = self.singlefilecounter + 1
     
     def is_mbr(self, filepath):
-
         ret = False
 
         fd = open(filepath, "rb")
-
         fd.seek(446, 0)
 
         status = fd.read(1)
-
         if len(status) == 1 and ord(status) in [0x00, 0x80]:
-           
             fd.seek(510, 0)
     
             sig = fd.read(2)
-
             if ord(sig[0]) == 0x55 and ord(sig[1]) == 0xAA:
                 ret = True
 
         return ret
        
     def is_partition_image(self, evidence_file):
-
         isimage = 1
 
         try:
@@ -102,9 +101,94 @@ class acquire_files:
 
     # checks if given file is a partition image
     def is_disk_image(self, evidence_file):
-
         return self.is_mbr(evidence_file) or self.is_partition_image(evidence_file)
- 
+
+    def _run_dump_files(self, evidence_file, gui_ref):
+        # kick off dumpfiles
+        volpath = gui_ref.UI.volatility_path 
+       
+        (memfile, volprofile) = evidence_file.strip("\n\r").split(",")
+
+        olddir = os.getcwd()
+        
+        os.chdir(volpath)
+        output = open("outputfile", "w")
+
+        try:
+            os.mkdir("dumpdir")
+        except:
+            pass
+
+        call(["python", "vol.py", "-f", memfile, "--profile", volprofile, "dumpfiles", "-D", "dumpdir", "-S", "summaryfile"], stderr = output, stdout = output) 
+       
+        summary = open("summaryfile", "r").readlines()
+        
+        print "changing back to %s" % olddir
+        os.chdir(olddir)
+    
+        return summary
+
+    def _parse_summary(self, voldir, summary):
+        ret = []
+
+        hives = ["SOFTWARE", "SYSTEM", "SECURITY", "NTUSER.DAT", "SAM", "USRCLASS.DAT"]
+
+        # read in summary files, rename hives based on read-in
+        for line in summary:
+            try:
+                (_addr, _num, mpath, fullpath) = line.strip().split(",")
+            except:
+                continue
+
+            ents = mpath.split("\\")
+            last = ents[-1]
+
+            # if a registry hive
+            if last in hives or last.upper() in hives:
+                if last.find("NTUSER") != -1:
+                    username = ents[-2]
+                else:
+                    username = ""
+
+                fullpath = os.path.join(voldir, fullpath)
+
+                ret.append((fullpath, username, last))
+
+        return ret
+
+    def _create_memory_schema(self, conn, cursor):
+        cursor.execute("select sql from sqlite_master where type='table' and name=?", ["memory_sources"])    
+    
+        if not cursor.fetchall():
+            tables = ["memory_sources (filename text,  id integer primary key asc)",
+                      "registry_files (filename text,  username text, realname text, evi_id int, id integer primary key asc)" ]
+
+            for table in tables:
+                cursor.execute("create table " + table)
+             
+            conn.commit()
+
+    def _insert_mem_file(self, cursor, evidence_file):
+        cursor.execute("insert into memory_sources (filename) values (?)", [evidence_file])
+        return cursor.execute("SELECT last_insert_rowid()").fetchone()[0] 
+
+    def add_memory_file(self, evidence_file, gui_ref):
+        summary = self._run_dump_files(evidence_file, gui_ref)
+
+        hives = self._parse_summary(gui_ref.UI.volatility_path, summary)
+                         
+        (conn, cursor) = common.connect_db(os.path.join(gui_ref.directory, "registryfiles"), "memory_image_files.db")
+
+        self._create_memory_schema(conn, cursor) 
+
+        evi_id = self._insert_mem_file(cursor, evidence_file.split(",")[0])
+
+        for hive in hives:
+            query = "insert into registry_files (filename, username, realname, evi_id) values (?,?,?,?)"
+            cursor.execute(query, hive + (evi_id,))
+
+        conn.commit()
+
     # tries to determine the file type of 'evidence_file' based on
     # extension 
     def determine_type_ext(self, evidence_file):
@@ -117,6 +201,9 @@ class acquire_files:
         elif extension  == ".db":
             etype = [RDB]
         
+        elif extension == ".vmem":
+            etype = [MEMORY]
+
         elif self.is_disk_image(evidence_file): 
             etype = [DD]
 
@@ -145,11 +232,9 @@ class acquire_files:
     
     # this gathers the evidence from input files for second stange processing
     def acquire_from_file(self, evidence_file, gui_ref):
-        try:
-            fd = open(evidence_file, "rb")
-        except IOError:
-            gui_ref.UI.msgBox("Unable to open file %s. Exiting." % evidence_file)
-            return -2
+        if evidence_file.find(".vmem") > 0:
+            self.add_memory_file(evidence_file, gui_ref)
+            return [MEMORY]
 
         evidence_type = self.determine_type_ext(evidence_file)
         
@@ -157,7 +242,6 @@ class acquire_files:
             evidence_type = self.determine_type_sig(evidence_file)
 
         if evidence_type[0] == UNKNOWN:
-        
             evidence_type = self.continuebox(evidence_file, gui_ref)
   
         elif evidence_type[0] == DD:
@@ -182,7 +266,7 @@ class acquire_files:
 
         elif evidence_type[0] == SINGLEFILE:
             self.add_single_file(evidence_file, evidence_type[1], gui_ref)            
-            
+           
         # keep a list of RDB files added
         elif evidence_type[0] == RDB:
             fd = open(os.path.join(gui_ref.directory, "registryfiles", "rdb-files.txt"), "a+")            

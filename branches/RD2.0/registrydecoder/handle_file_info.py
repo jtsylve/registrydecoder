@@ -24,7 +24,9 @@ def get_hives_info(gui):
     # do not change the order of these!
     (fileinfo_hash, root) = _handle_images(gui)
 
-    (fileinfo_hash, root) = _handle_single(gui, fileinfo_hash, root)
+    (fileinfo_hash, root) = _handle_single(gui, fileinfo_hash, root, "SINGLE")
+    
+    (fileinfo_hash, root) = _handle_memory(gui, fileinfo_hash, root)
 
     return (fileinfo_hash, root)
 
@@ -36,24 +38,53 @@ def _get_ename(efile, alias):
 
     return ename
 
-def _handle_single(gui, fileinfo_hash, root):
+def _handle_memory(gui, fileinfo_hash, root):
+    cursor = gui.case_obj.evidencedb.cursor
+
+    cursor.execute("select filename, id from evidence_sources")
+    res = cursor.fetchall()
+    for (evi_file, evi_id) in res:
+        query = "select r.filename, r.id, r.registry_type, r.md5sum from file_groups as g, registry_files as r where g.group_name='MEMORY' and g.partition_id=? and g.id=r.reg_type_id and r.hive_type=-1" 
+        members = [evi_id]
+        cursor.execute(query, members)
+        
+        # top level - name of memory image
+        efile = tree_entry(evi_file)
+        root.subs.append(efile)
+
+        for (reg_file, reg_id, reg_type, reg_hash) in cursor.fetchall():
+            # make for the hive
+            hive = tree_entry(reg_file)
+            hive.fileids.append(reg_id)
+            
+            # add the hive to the tree
+            efile.subs.append(hive)
+            efile.fileids.append(reg_id)
+             
+            # for click 'all hives'
+            root.fileids.append(reg_id)
+
+            fileinfo_hash[reg_id] = rfileinfo(evi_file, "HMM?", reg_file, reg_type, reg_hash, 0, "MEMORY", -1, "MEMORY_TYPE")
+         
+        return (fileinfo_hash, root)
+
+def _handle_single(gui, fileinfo_hash, root, group_name):
     cursor = gui.case_obj.evidencedb.cursor 
 
-    cursor.execute("select g.id, e.filename, e.file_alias from file_groups as g, evidence_sources as e where g.group_name='SINGLE' and e.id=g.partition_id")
+    cursor.execute("select g.id, e.filename, e.file_alias from file_groups as g, evidence_sources as e where g.group_name=? and e.id=g.partition_id", [group_name])
 
     for (gid, evidence_file, alias) in cursor.fetchall():
 
-        cursor.execute("select id, registry_type, md5sum, mtime from registry_files where hive_type=-1 and reg_type_id=?", [gid])
+        cursor.execute("select id, registry_type, md5sum, mtime, filename from registry_files where hive_type=-1 and reg_type_id=?", [gid])
     
-        for (efileid, rtype, md5sum, mtime) in cursor.fetchall():
-
+        for (efileid, rtype, md5sum, mtime, filename) in cursor.fetchall():
             ename = _get_ename(evidence_file, alias)
             efile = tree_entry(ename)
             root.subs.append(efile)
             efile.fileids.append(efileid)            
             root.fileids.append(efileid)
 
-            fileinfo_hash[efileid] = rfileinfo(evidence_file, ename, evidence_file, rtype, md5sum, mtime, "SINGLE", -1, "SINGLE_TYPE") 
+            fileinfo_hash[efileid] = rfileinfo(evidence_file, ename, filename, rtype, md5sum, mtime, group_name, -1, group_name + "TYPE") 
 
     return (fileinfo_hash, root)
 
@@ -94,7 +125,7 @@ def _handle_images(gui):
             # for each group in the parition 
             for (group_name, gid) in groups:
 
-                if group_name == "SINGLE":
+                if group_name in ["SINGLE", "MEMORY"]:
                     continue
 
                 gent = tree_entry(group_name)

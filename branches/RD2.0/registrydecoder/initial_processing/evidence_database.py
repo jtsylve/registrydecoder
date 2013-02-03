@@ -176,7 +176,13 @@ class evidence_database:
         file_id = self.cursor.execute("SELECT last_insert_rowid()").fetchone()[0]
 
         return (evidence_type, file_id)
-        
+       
+
+    def _write_mem_hive(self, reg_filename, group_id, fullpath):
+        (etype, file_id) = self.insert_registry_file(reg_filename, 0, group_id, fullpath)
+
+        self.add_file_to_tree(fullpath, file_id, reg_filename, "")
+
     # gets a single registry file and inserts into the database with its group information
     # also handles pickling the file
     def write_single_file(self, case_dir, path, group_id, line):
@@ -335,6 +341,32 @@ class evidence_database:
 
         fd.close()
 
+    def handle_memory_files(self, case_dir, basedir):
+        try:
+            fd = open(os.path.join(basedir, "memory_image_files.db"))
+        except:
+            return
+
+        # the conn/cursor to read the source database, only selects are performed, no commit needed
+        (conn, cursor) = common.connect_db(basedir, "memory_image_files.db")
+        cursor.execute("select filename, id from memory_sources")
+        
+        for (filename, evi_id) in cursor.fetchall():
+            new_evi_id = self.insert_evidence_source(filename)
+
+            group_name = "MEMORY"
+            group_id   = self.insert_file_group(group_name, new_evi_id)
+
+            query = "select filename, username, realname from registry_files where evi_id=?"
+            members = [evi_id]
+            cursor.execute(query, members)
+
+            for (ffilename, username, realname) in cursor.fetchall():
+                if username:
+                    realname = username
+
+                self._write_mem_hive(realname, group_id, ffilename)
+
     def write_evidence_database(self, gui_ref, ehash, case_obj):
         # this can probably be cleaned up but meh..
         self.case_obj = case_obj
@@ -356,7 +388,10 @@ class evidence_database:
         if os.path.exists(path):
             self.write_single_to_db(case_dir, path)        
             self.conn.commit()
-                    
+             
+        self.handle_memory_files(case_dir, basedir)
+        self.conn.commit()
+       
         self.handle_image_files(case_dir, basedir)
         self.conn.commit()
 

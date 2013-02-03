@@ -29,6 +29,7 @@ UNKNOWN = 0
 DD  = 1
 RDB = 2
 SINGLEFILE = 3
+MEMORY = 4
 
 # DO NOT CHANGE THIS OR THE HASH TABLE
 # registry types

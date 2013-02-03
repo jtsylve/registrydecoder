@@ -175,8 +175,7 @@ class case_processing:
         for evidence_file in self.UI.evidence_list:        
         
             self.evidence_db.update_output("Processing File %d of %d" % (i+1, numfiles))
-            
-            # grab all the registry files from each file or the registry file itself
+
             etype = self.acquire_files.acquire_from_file(evidence_file, create_case_ref)
 
             # user chose to skip the file
@@ -189,7 +188,12 @@ class case_processing:
 
             else:
                 etype = etype[0]
-                ehash[evidence_file] = etype
+                if evidence_file.find(",") != -1:
+                    efile = evidence_file.split(",")[0]
+                else:
+                    efile = evidence_file
+
+                ehash[efile] = etype
     
             i = i + 1
 

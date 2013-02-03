@@ -40,21 +40,13 @@ class tree_handling:
             keylist = self.reg_parser.parse_file(existingfilepath)
             self.add_elements(keylist, gui, fileid, case_obj)
             error = 0
-        except AttributeError, e:
-            error = 1
         # regfi throws generic Exception
         except Exception, e:
             error = 1
 
         if error: 
-            #print "--error: %s" % str(e)
-            #traceback.print_exc(file=sys.stdout)
-            cont = gui.yesNoDialog("tree_handling: Unable to process %s" % filepath, "Would you like to skip this file?")
-
-            if cont:
-                return False
-            else:
-                raise RegFiKeyError(filepath)
+            print "Unable to process %s" % existingfilepath
+            return False
 
         return True
 
