@@ -32,7 +32,7 @@ class tree_handling:
     def __init__(self):
         self.reg_parser = regparse.regparser()
 
-    def add_file_to_tree(self, gui, existingfilepath, fileid, case_obj, filepath):
+    def add_file_to_tree(self, gui, existingfilepath, fileid, case_obj, filepath, hivepath):
         # had to try/expect whole function b/c
         # exception occurs in 'for' due to being generator
         try:
@@ -45,7 +45,9 @@ class tree_handling:
             error = 1
 
         if error: 
-            print "Unable to process %s" % existingfilepath
+            fd = open(os.path.join(case_obj.case_directory, "broken-files.txt"), "w+")
+            fd.write(hivepath + "\n")
+            fd.close()            
             return False
 
         return True

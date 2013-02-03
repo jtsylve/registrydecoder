@@ -69,7 +69,6 @@ class registry_sig:
         return None
 
     def determine_type_file(self, filename):
-        print "got filename: %s" % filename
         return self.determine_type(filename)
 
 def main():

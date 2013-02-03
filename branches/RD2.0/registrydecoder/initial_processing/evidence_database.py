@@ -122,9 +122,9 @@ class evidence_database:
         else:
             evidence_type = self.guess_type(hive_name)
 
-        if not evidence_type and hive_name:
-            print "Couldnt find type for %s -> %s" % (hive_name, fullpath)
-            #raise MsgBoxError("Couldnt find type for %s -> %s" % (hive_name, fullpath))
+        #if not evidence_type and hive_name:
+        #print "Couldnt find type for %s -> %s" % (hive_name, fullpath)
+        #raise MsgBoxError("Couldnt find type for %s -> %s" % (hive_name, fullpath))
 
         return (md5, mtime, evidence_type)
         
@@ -210,7 +210,7 @@ class evidence_database:
             first = first + " from %s" % extra
 
         self.update_output("Adding " + first)
-        ret = self.tree_handler.add_file_to_tree(self.UI, pickle_file, fileid, self.case_obj, first)
+        ret = self.tree_handler.add_file_to_tree(self.UI, pickle_file, fileid, self.case_obj, first, hivepath)
 
         # if the file added correctly then display, if not delete its records from the database
         if ret == True:
