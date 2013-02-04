@@ -38,10 +38,13 @@ import ewf
 import traceback
 import shutil
 
+import sqlite3
+
 class acquire_files:
 
     def __init__(self):
         self.singlefilecounter = 0
+        self.memfilectr = 0
         self.reg_sig = registry_sig.registry_sig()
         self.ac = None
 
@@ -103,7 +106,9 @@ class acquire_files:
     def is_disk_image(self, evidence_file):
         return self.is_mbr(evidence_file) or self.is_partition_image(evidence_file)
 
-    def _run_dump_files(self, evidence_file, gui_ref):
+    def _run_vol(self, evidence_file, gui_ref):
+        ret = []
+
         # kick off dumpfiles
         volpath = gui_ref.UI.volatility_path 
        
@@ -111,48 +116,72 @@ class acquire_files:
 
         olddir = os.getcwd()
         
+        copydir = os.path.join(gui_ref.directory, "registryfiles", "memdumpdir")    
+        try:
+            os.makedirs(copydir)
+        except:
+            pass
+
+        dumpdir = "dumpdir"
+        if os.path.exists(dumpdir):
+            for root, dirs, files in os.walk(dumpdir):
+                for fname in files:
+                    os.unlink(fname)           
+        else:
+            os.mkdir(dumpdir) 
+
         os.chdir(volpath)
         output = open("outputfile", "w")
 
         try:
-            os.mkdir("dumpdir")
+            os.unlink("summary.db")
         except:
             pass
 
-        call(["python", "vol.py", "-f", memfile, "--profile", volprofile, "dumpfiles", "-D", "dumpdir", "-S", "summaryfile"], stderr = output, stdout = output) 
+        call(["python", "vol.py", "-f", memfile, "--profile", volprofile, "printallkeys3", "--output-file", "summary.db", "-D", "dumpdir"], stderr = output, stdout = output) 
        
-        summary = open("summaryfile", "r").readlines()
-        
-        print "changing back to %s" % olddir
-        os.chdir(olddir)
+        os.unlink("outputfile") 
     
-        return summary
-
-    def _parse_summary(self, voldir, summary):
-        ret = []
-
         hives = ["SOFTWARE", "SYSTEM", "SECURITY", "NTUSER.DAT", "SAM", "USRCLASS.DAT"]
 
-        # read in summary files, rename hives based on read-in
-        for line in summary:
-            try:
-                (_addr, _num, mpath, fullpath) = line.strip().split(",")
-            except:
-                continue
+        #ret.append((fullpath, username, last))
 
-            ents = mpath.split("\\")
+        conn = sqlite3.connect("summary.db")
+        cursor = conn.cursor()
+
+        cursor.execute("select filename, filepath from registry_files")
+        for (filename, filepath) in cursor.fetchall():
+            ents = filename.split("\\")
             last = ents[-1]
 
-            # if a registry hive
-            if last in hives or last.upper() in hives:
+            good = 0
+            username = ""
+
+            if filename.find("no name") != -1:
+                buf = open(filepath, "rb").read(0x1300)
+                if buf.find("HARDWARE") != -1 and buf.find("DEVICEMAP") != -1:
+                    last = "Hardware Volatile Hive"         
+                                    
+                elif buf.find("REGISTRY") != -1 and buf.find("MACHINE") != -1:
+                    last = "Security Clone Volatile Hive"
+
+                good = 1
+            
+            elif last in hives or last.upper() in hives:
                 if last.find("NTUSER") != -1:
                     username = ents[-2]
-                else:
-                    username = ""
 
-                fullpath = os.path.join(voldir, fullpath)
+                good = 1
+                
+            if good:
+                copyname = os.path.join(copydir, "%d" % self.memfilectr)
+                shutil.copy(filepath, copyname)
+                self.memfilectr = self.memfilectr + 1
+                ret.append((copyname, username, last))             
+            else:
+                print "skipping %s" % filepath
 
-                ret.append((fullpath, username, last))
+        os.chdir(olddir)
 
         return ret
 
@@ -173,10 +202,8 @@ class acquire_files:
         return cursor.execute("SELECT last_insert_rowid()").fetchone()[0] 
 
     def add_memory_file(self, evidence_file, gui_ref):
-        summary = self._run_dump_files(evidence_file, gui_ref)
+        hives = self._run_vol(evidence_file, gui_ref)
 
-        hives = self._parse_summary(gui_ref.UI.volatility_path, summary)
-                         
         (conn, cursor) = common.connect_db(os.path.join(gui_ref.directory, "registryfiles"), "memory_image_files.db")
 
         self._create_memory_schema(conn, cursor) 

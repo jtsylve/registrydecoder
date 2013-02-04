@@ -44,7 +44,8 @@ def _handle_memory(gui, fileinfo_hash, root):
     cursor.execute("select filename, id from evidence_sources")
     res = cursor.fetchall()
     for (evi_file, evi_id) in res:
-        query = "select r.filename, r.id, r.registry_type, r.md5sum from file_groups as g, registry_files as r where g.group_name='MEMORY' and g.partition_id=? and g.id=r.reg_type_id and r.hive_type=-1" 
+        #query = "select r.filename, r.id, r.registry_type, r.md5sum from file_groups as g, registry_files as r where g.group_name='MEMORY' and g.partition_id=? and g.id=r.reg_type_id and r.hive_type=-1" 
+        query = "select r.filename, r.id, r.registry_type, r.md5sum from registry_files as r, file_groups as g, evidence_sources as e where r.reg_type_id=g.id and g.group_name='MEMORY' and e.id=g.partition_id and e.id=?"
         members = [evi_id]
         cursor.execute(query, members)
         
@@ -64,9 +65,9 @@ def _handle_memory(gui, fileinfo_hash, root):
             # for click 'all hives'
             root.fileids.append(reg_id)
 
-            fileinfo_hash[reg_id] = rfileinfo(evi_file, "HMM?", reg_file, reg_type, reg_hash, 0, "MEMORY", -1, "MEMORY_TYPE")
+            fileinfo_hash[reg_id] = rfileinfo(evi_file, "", reg_file, reg_type, reg_hash, 0, "MEMORY", -1, "MEMORY_TYPE")
          
-        return (fileinfo_hash, root)
+    return (fileinfo_hash, root)
 
 def _handle_single(gui, fileinfo_hash, root, group_name):
     cursor = gui.case_obj.evidencedb.cursor 

@@ -179,7 +179,7 @@ class create_case:
             # the case_obj stuff gets reinitialized after button is pressed
             if self.add_evidence == 0:
                 try:
-                    self.removeall(self.directory)
+                    #self.removeall(self.directory)
                     os.mkdir(regdir)
                 except:
                     self.UI.msgBox("WARNING: Registry Decoder was unable to remove the scratch directory. New evidence cannot be added to this case unless you manually remove the 'registryfiles' directory in your case folder.")     
@@ -211,10 +211,10 @@ class create_case:
         # everything added, lets do some forensics!
         else:
             # delete all our scratch files / databases
-            try:
-                self._removeall(os.path.join(self.directory, "registryfiles"))
-            except:
-                self.UI.msgBox("WARNING: Registry Decoder was unable to remove the scratch directory. New evidence cannot be added to this case unless you manually remove the 'registryfiles' directory in your case folder.")
+            #try:
+            #self._removeall(os.path.join(self.directory, "registryfiles"))
+            #except:
+            #self.UI.msgBox("WARNING: Registry Decoder was unable to remove the scratch directory. New evidence cannot be added to this case unless you manually remove the 'registryfiles' directory in your case folder.")
 
             return True
     
